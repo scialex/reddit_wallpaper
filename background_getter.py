@@ -3,7 +3,7 @@
 import json, gconf, syslog, os
 from syslog import LOG_DEBUG as DEBUG, LOG_INFO as INFO, LOG_WARNING as WARNING, LOG_ERR as ERROR
 from collections import namedtuple
-from urllib2 import urlopen
+from urllib2 import urlopen, HTTPError
 
 
 
@@ -79,7 +79,10 @@ def get_image_data(conf, data):
 
         elif child["data"]["domain"] == "imgur.com":
             name = child["data"]["url"].split('/')[-1]
-            data = json.loads(urlopen(IMGUR_JSON_FORMAT.format(name)).read())
+            try:
+                data = json.loads(urlopen(IMGUR_JSON_FORMAT.format(name)).read())
+            except HTTPError:
+                continue
             url = data["image"]['links']["original"]
             syslog.syslog(INFO, 'found {0}, link was not direct'.format(url))
             return url, child['data']['id']
@@ -114,6 +117,9 @@ if __name__ == '__main__':
                       'Failed to update wallpaper, reason was {0}'.format(f.args[0]))
     except Unsuccessful as u:
         syslog.syslog(INFO, "Did not change wallpaper")
+    except HTTPError as h:
+        syslog.syslog(ERROR, 
+                     "An HTTPError was thrown, reason given was {0}".format(str(h)))
     except Exception as e:
         syslog.syslog(ERROR,
                       'an uncaught exception was thrown, reason given was {0}, type was given as {1}'.format(e.args[0],
