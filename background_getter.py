@@ -115,16 +115,15 @@ if __name__ == '__main__':
         start_update(conf)
     except Failed as f:
         logit(WARNING,
-                      'Failed to update wallpaper, reason was {0}'.format(f.args[0]))
+              'Failed to update wallpaper, reason was {0}'.format(f.args[0]))
     except Unsuccessful as u:
         logit(INFO, "Did not change wallpaper")
     except HTTPError as h:
         logit(ERROR, 
-                     "An HTTPError was thrown, reason given was {0}".format(str(h)))
+              "An HTTPError was thrown, reason given was {0}".format(str(h)))
     except Exception as e:
         logit(ERROR,
-                      'an uncaught exception was thrown, reason given was {0}, type was given as {1}'.format(e.args[0],
-                                                                                                             type(e)))
+              'an uncaught exception was thrown, reason given was {0}, type was given as {1}'.format(e.args[0], type(e)))
     else:
         logit(INFO, 'all done changing wallpaper')
     syslog.closelog()
