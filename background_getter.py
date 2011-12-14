@@ -5,7 +5,8 @@ from syslog import LOG_DEBUG as DEBUG, LOG_INFO as INFO, LOG_WARNING as WARNING,
 from collections import namedtuple
 from urllib2 import urlopen, HTTPError
 
-
+#temporary
+logit = syslog.syslog
 
 configuration = namedtuple("configuration",
                            ["overwrite",
@@ -19,7 +20,7 @@ configuration = namedtuple("configuration",
 
 #THE DEFAULT CONFIGURATION SETTINGS
 OVERWRITE = False
-SYSLOG_IDENT = 'wallpaper_rotater'#name in the log
+SYSLOG_IDENT = 'wallpaper_rotater-dev'#name in the log
 #the min log_level. should put to LOG_WARNING after done testing
 SYSLOG_LOGMASK = syslog.LOG_UPTO(DEBUG)
 NUMBER_TRIES = 3 #how many subbmission will it look at?
@@ -38,7 +39,7 @@ class Unsuccessful(Exception):
 def start_update(conf):
     json_data = json.loads(urlopen(JSON_PAGE_FORMAT.format(conf.subreddit)).read())["data"]["children"]
     imageURL, post_id = get_image_data(conf, json_data)
-    syslog.syslog(INFO, "Postid for the image is {0}".format(post_id))
+    logit(INFO, "Postid for the image is {0}".format(post_id))
     save_name = os.path.join(conf.save_location,
                              #the name will be <id>.<file_type>
                              "".join((post_id,'.', imageURL.split('.')[-1])))
@@ -49,16 +50,16 @@ def start_update(conf):
 def write_file(conf, url, save_name):
     if conf.overwrite or not os.access(save_name, os.F_OK):
         if not os.access(os.path.dirname(save_name), os.W_OK):
-            syslog.syslog(ERROR, "The location {0} is not writable by this process".format(save_name))
+            logit(ERROR, "The location {0} is not writable by this process".format(save_name))
             raise Failed("Unwritable save location")
 
-        syslog.syslog(INFO, "saving to {0}".format(save_name))
+        logit(INFO, "saving to {0}".format(save_name))
         with open(save_name, 'wb') as f:
             f.write(urlopen(url).read())
             f.flush()
             os.fsync(f.fileno())
     else:
-        syslog.syslog(WARNING, "there is already a file at {0}".format(save_name))
+        logit(WARNING, "there is already a file at {0}".format(save_name))
     return
 
 def get_image_data(conf, data):
@@ -69,12 +70,12 @@ def get_image_data(conf, data):
 
         elif child["data"]["domain"] == "i.imgur.com":
             url = child["data"]["url"]
-            syslog.syslog(INFO, 'found {0}, link was direct to i.imgur.com'.format(url))
+            logit(INFO, 'found {0}, link was direct to i.imgur.com'.format(url))
             return url, child['data']['id']
 
         elif child['data']['url'].split('.')[-1] in conf.picture_endings:
             url = child['data']['url']
-            syslog.syslog(INFO, 'found {0}, link was direct to a non_imgur site'.format(url))
+            logit(INFO, 'found {0}, link was direct to a non_imgur site'.format(url))
             return url, child['data']['id']
 
         elif child["data"]["domain"] == "imgur.com":
@@ -84,9 +85,9 @@ def get_image_data(conf, data):
             except HTTPError:
                 continue
             url = data["image"]['links']["original"]
-            syslog.syslog(INFO, 'found {0}, link was not direct'.format(url))
+            logit(INFO, 'found {0}, link was not direct'.format(url))
             return url, child['data']['id']
-    syslog.syslog(syslog.LOG_WARNING, "none of the possibilities could be used")
+    logit(syslog.LOG_WARNING, "none of the possibilities could be used")
     raise Failed("could not get a suitable url")
 
 def set_as_background(conf, file_location):
@@ -95,9 +96,9 @@ def set_as_background(conf, file_location):
     worked = client.set_string(GCONF_KEY,file_location)
     client.suggest_sync()
     if worked:
-        syslog.syslog(DEBUG, 'changed the background succsessfully')
+        logit(DEBUG, 'changed the background succsessfully')
     else:
-        syslog.syslog(ERROR, 'was unable to change the background')
+        logit(ERROR, 'was unable to change the background')
         raise Failed("could not set gconf key")
     return
 
@@ -109,22 +110,22 @@ if __name__ == '__main__':
                          subreddit = SUBREDDIT)
     syslog.openlog(SYSLOG_IDENT)
     syslog.setlogmask(SYSLOG_LOGMASK)
-    syslog.syslog(INFO, 'Starting change of wallpaper')
+    logit(INFO, 'Starting change of wallpaper')
     try:
         start_update(conf)
     except Failed as f:
-        syslog.syslog(WARNING,
+        logit(WARNING,
                       'Failed to update wallpaper, reason was {0}'.format(f.args[0]))
     except Unsuccessful as u:
-        syslog.syslog(INFO, "Did not change wallpaper")
+        logit(INFO, "Did not change wallpaper")
     except HTTPError as h:
-        syslog.syslog(ERROR, 
+        logit(ERROR, 
                      "An HTTPError was thrown, reason given was {0}".format(str(h)))
     except Exception as e:
-        syslog.syslog(ERROR,
+        logit(ERROR,
                       'an uncaught exception was thrown, reason given was {0}, type was given as {1}'.format(e.args[0],
                                                                                                              type(e)))
     else:
-        syslog.syslog(INFO, 'all done changing wallpaper')
+        logit(INFO, 'all done changing wallpaper')
     syslog.closelog()
 
