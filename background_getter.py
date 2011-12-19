@@ -1,11 +1,25 @@
 #!/usr/bin/python
 
+
+#TODO add size min and max arguments
+#TODO redo get image data so above will work.
+#TODO make it work with command line arguments
+#TODO make it work with a real config file
+#TODO add a copyright notice to it GPL3+ maybe...
+#TODO make better logging functionality, still with syslog just maybe also be able to tee it to stdout? IDK?
+#TODO factor out all site/OS specific stuff to other files. (i.e. gconf)
+#TODO make it work on windows and OSX
+#TODO give it a TK gui
+#TODO integrate it with pycrontab and windows scheduler so can have scheduled things
+#TODO package it
+#TODO profit
+
 import json, gconf, syslog, os
 from syslog import LOG_DEBUG as DEBUG, LOG_INFO as INFO, LOG_WARNING as WARNING, LOG_ERR as ERROR
 from collections import namedtuple
 from urllib2 import urlopen, HTTPError
 
-#temporary
+#temporary will change to better logging system.
 logit = syslog.syslog
 
 configuration = namedtuple("configuration",
