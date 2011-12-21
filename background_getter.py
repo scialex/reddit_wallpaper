@@ -1,6 +1,18 @@
 #!/usr/bin/python
-
-
+# Copyright 2012, Alex Light.
+#
+# This file is part of Reddit-background-updater (RBU).
+#
+# RBU is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# RBU is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with RBU.  If not, see <http://www.gnu.org/licenses/>.
+#
 #TODO add size min and max arguments
 #TODO redo get image data so above will work.
 #TODO make it work with command line arguments
@@ -14,7 +26,10 @@
 #TODO package it
 #TODO profit
 
-import json, gconf, syslog, os
+import json
+import gconf
+import syslog
+import  os
 from syslog import LOG_DEBUG as DEBUG, LOG_INFO as INFO, LOG_WARNING as WARNING, LOG_ERR as ERROR
 from collections import namedtuple
 from urllib2 import urlopen, HTTPError
@@ -26,24 +41,24 @@ configuration = namedtuple("configuration",
                            ["overwrite",
                             "num_tries",
                             "save_location",
-                            #"gconf_key",#this should be same everywhere
                             "picture_endings",
-                            "subreddit"])
-
-
+                            "subreddit",
+                            "allow_nsfw"])
 
 #THE DEFAULT CONFIGURATION SETTINGS
-OVERWRITE = False
+default_conf = configuration(overwrite = False,
+                             num_tries = 3,
+                             save_locaton = os.path.join(os.path.expanduser('~'),
+                                                         '.background_getter'),
+                             picture_endings = ['png', 'jpg', 'jpeg', 'gif'],
+                             subreddit = 'wallpaper+wallpapers')
+
 SYSLOG_IDENT = 'wallpaper_rotater-dev'#name in the log
 #the min log_level. should put to LOG_WARNING after done testing
 SYSLOG_LOGMASK = syslog.LOG_UPTO(DEBUG)
-NUMBER_TRIES = 3 #how many subbmission will it look at?
-SAVE_LOCATION = os.path.join(os.path.expanduser('~'), '.background_getter')
 GCONF_KEY = '/desktop/gnome/background/picture_filename'#key to write new wallpaper to
-PICTURE_ENDINGS=['png','jpg','jpeg','gif']#picture endings
 JSON_PAGE_FORMAT = 'http://www.reddit.com/r/{0}.json'#where the list of possible wallpapers is
 IMGUR_JSON_FORMAT = "http://api.imgur.com/2/image/{0}.json"
-SUBREDDIT = "wallpaper+wallpapers"
 
 class Failed(Exception):
     pass
@@ -51,6 +66,7 @@ class Unsuccessful(Exception):
     pass
 
 def start_update(conf):
+    """Updates the background image using the configuration stored in conf"""
     json_data = json.loads(urlopen(JSON_PAGE_FORMAT.format(conf.subreddit)).read())["data"]["children"]
     imageURL, post_id = get_image_data(conf, json_data)
     logit(INFO, "Postid for the image is {0}".format(post_id))
@@ -62,6 +78,11 @@ def start_update(conf):
     return
 
 def write_file(conf, url, save_name):
+    """Takes in a configuration object, the url string and a file name
+       It will attempt to download the file at the url and will save it
+       to the given location, if there is already a file at save_name it
+       will niether download nor save the file.
+    """
     if conf.overwrite or not os.access(save_name, os.F_OK):
         if not os.access(os.path.dirname(save_name), os.W_OK):
             logit(ERROR, "The location {0} is not writable by this process".format(save_name))
@@ -77,9 +98,11 @@ def write_file(conf, url, save_name):
     return
 
 def get_image_data(conf, data):
+    """Selects a background image from the data conforming to the configuration
+       and returns its url as well as its reddit post-id number
+    """
     for child in data[0:conf.num_tries]:
-
-        if child["data"]["thumbnail"] == "nsfw":
+        if conf.allow_nsfw == False and child["data"]["thumbnail"] == "nsfw":
             continue
 
         elif child["data"]["domain"] == "i.imgur.com":
@@ -105,7 +128,7 @@ def get_image_data(conf, data):
     raise Failed("could not get a suitable url")
 
 def set_as_background(conf, file_location):
-   # assert type(file_location) is type("a string")
+    """Sets the background path to the given path"""
     client = gconf.client_get_default()
     worked = client.set_string(GCONF_KEY,file_location)
     client.suggest_sync()
@@ -117,11 +140,7 @@ def set_as_background(conf, file_location):
     return
 
 if __name__ == '__main__':
-    conf = configuration(overwrite = OVERWRITE,
-                         num_tries = NUMBER_TRIES,
-                         save_location = SAVE_LOCATION,
-                         picture_endings = PICTURE_ENDINGS,
-                         subreddit = SUBREDDIT)
+    conf = default_conf
     syslog.openlog(SYSLOG_IDENT)
     syslog.setlogmask(SYSLOG_LOGMASK)
     logit(INFO, 'Starting change of wallpaper')
