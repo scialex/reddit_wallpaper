@@ -29,7 +29,8 @@
 import json
 import gconf
 import syslog
-import  os
+import imagefacts
+import os
 from syslog import LOG_DEBUG as DEBUG, LOG_INFO as INFO, LOG_WARNING as WARNING, LOG_ERR as ERROR
 from collections import namedtuple
 from urllib2 import urlopen, HTTPError
@@ -46,6 +47,10 @@ configuration = namedtuple("configuration",
                             "allow_nsfw",
 			    "size_limit"])
 
+size_limit = namedtuple("size_limit",
+			["min_x","min_y",
+			 "max_x","max_y"])
+
 #THE DEFAULT CONFIGURATION SETTINGS
 default_conf = configuration(overwrite = False,
                              num_tries = None,
@@ -54,8 +59,8 @@ default_conf = configuration(overwrite = False,
                              picture_endings = ['png', 'jpg', 'jpeg', 'gif'],
                              subreddit  = 'wallpaper+wallpapers',
 			     allow_nsfw = False,
-			     size_limit = None)
-SYSLOG_IDENT = 'wallpaper_rotater-dev'#name in the log
+			     size_limit = None)#size_limit(0,0,1660,1000))
+SYSLOG_IDENT = 'wallpaper-rotater-dev'#name in the log
 #the min log_level. should put to LOG_WARNING after done testing
 SYSLOG_LOGMASK = syslog.LOG_UPTO(DEBUG)
 GCONF_KEY = '/desktop/gnome/background/picture_filename'#key to write new wallpaper to
@@ -67,13 +72,12 @@ class Failed(Exception):
 class Unsuccessful(Exception):
     pass
 
-size_limit = namedtuple("size_limit",
-			["min_x","min_y",
-			 "max_x","max_y"])
 
 def start_update(conf):
     """Updates the background image using the configuration stored in conf"""
     json_data = json.loads(urlopen(JSON_PAGE_FORMAT.format(conf.subreddit)).read())["data"]["children"]
+    logit(DEBUG,
+          "retrieved json page from reddit successfully")
     imageURL, post_id = select_image(conf, json_data)
     logit(INFO, "Postid for the image is {0}".format(post_id))
     save_name = os.path.join(conf.save_location,
@@ -113,11 +117,10 @@ def check_size(conf, img_size):
     size_limit = conf.size_limit
     x = img_size[0]
     y = img_size[1] 
-    return size_limit is None or (x >= size_limit.min_x and
-				  x <= size_limit.max_x and
-				  y >= size_limit.min_y and
-				  y <= size_limit.max_y)
-
+    return size_limit is None or ((size_limit.min_x is None or x >= size_limit.min_x) and
+				  (size_limit.max_x is None or x <= size_limit.max_x) and
+				  (size_limit.min_y is None or y >= size_limit.min_y) and
+				  (size_limit.max_y is None or y <= size_limit.max_y))
 
 def select_image(conf, data):
     """
@@ -125,16 +128,41 @@ def select_image(conf, data):
     and returns its url as well as its reddit post-id number
     """
     for child in data[0:conf.num_tries]:
+        url = child["data"]["url"]
         if conf.allow_nsfw == False and child["data"]["thumbnail"] == "nsfw":
+	    logit(INFO, "the image at {0} was marked NSFW, skiping".format(url))
             continue
 
         elif child["data"]["domain"] == "i.imgur.com":
-            url = child["data"]["url"]
+	    try:
+		data = json.loads(urlopen(IMGUR_JSON_FORMAT.format(url.split('/')[-1][:5])).read())
+		logit(DEBUG,
+		      "was able to retrieve the image metadata from imgur for image {0}".format(url))
+	    except HTTPError:
+		continue
+	    if not check_size(conf,
+			      (data["image"]["image"]["width"],
+			       data["image"]["image"]["height"])):
+		logit(DEBUG,
+		      "the image at {0} was not the right size".format(url))
+		continue
             logit(INFO, 'found {0}, link was direct to i.imgur.com'.format(url))
             return url, child['data']['id']
 
         elif child['data']['url'].split('.')[-1] in conf.picture_endings:
-            url = child['data']['url']
+	    try:
+		if conf.size_limit is not None:
+		    size = imagefacts.facts(url)[1:]
+		else:
+		    size = None # it wont be checked anyway,
+	    except Exception as e:
+		logit(WARNING,
+		      "something happened while trying to retrieve the image at {0} in order to determine its size. type of exception was {1} and reason given was {2}".format(url, type(e), e.args))
+		continue	
+	    if not check_size(conf, size):
+		logit(DEBUG,
+		      "the image at {0} was not the right size".format(url))
+		continue
             logit(INFO, 'found {0}, link was direct to a non_imgur site'.format(url))
             return url, child['data']['id']
 
@@ -143,8 +171,15 @@ def select_image(conf, data):
             try:
                 data = json.loads(urlopen(IMGUR_JSON_FORMAT.format(name)).read())
             except HTTPError:
+		logit(WARNING,
+		      "was unable to use the imgur api to determine the size of the image at {0}, skiping".format(url))
                 continue
-            url = data["image"]["links"]["original"]
+	    #check if the size is right
+            if not check_size(conf, (data["image"]["image"]["width"],
+			             data["image"]["image"]["height"])):
+		continue
+		
+	    url = data["image"]["links"]["original"]
             logit(INFO, 'found {0}, link was not direct'.format(url))
             return url, child['data']['id']
     logit(syslog.LOG_WARNING, "none of the possibilities could be used")
@@ -179,7 +214,7 @@ if __name__ == '__main__':
               "An HTTPError was thrown, reason given was {0}".format(str(h)))
     except Exception as e:
         logit(ERROR,
-              'an uncaught exception was thrown, reason given was {0}, type was given as {1}'.format(e.args[0], type(e)))
+              'an uncaught exception was thrown, reason given was {0}, type was given as {1}, args were {2}'.format(e.args[0], type(e), e.args))
     else:
         logit(INFO, 'all done changing wallpaper')
     syslog.closelog()
