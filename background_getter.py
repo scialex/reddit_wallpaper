@@ -74,7 +74,7 @@ size_limit = namedtuple("size_limit",
 def start_update(conf):
     """Updates the background image using the configuration stored in conf"""
     json_data = json.loads(urlopen(JSON_PAGE_FORMAT.format(conf.subreddit)).read())["data"]["children"]
-    imageURL, post_id = get_image_data(conf, json_data)
+    imageURL, post_id = select_image(conf, json_data)
     logit(INFO, "Postid for the image is {0}".format(post_id))
     save_name = os.path.join(conf.save_location,
                              #the name will be <id>.<file_type>
@@ -104,7 +104,22 @@ def write_file(conf, url, save_name):
         logit(WARNING, "there is already a file at {0}".format(save_name))
     return
 
-def get_image_data(conf, data):
+def check_size(conf, img_size):
+    """
+    this takes in the configuration object and a 2-tuple containing the x and 
+    y sizes of the image. it returns true if the size is permitted by the 
+    configuration given
+    """
+    size_limit = conf.size_limit
+    x = img_size[0]
+    y = img_size[1] 
+    return size_limit is None or (x >= size_limit.min_x and
+				  x <= size_limit.max_x and
+				  y >= size_limit.min_y and
+				  y <= size_limit.max_y)
+
+
+def select_image(conf, data):
     """
     Selects a background image from the data conforming to the configuration
     and returns its url as well as its reddit post-id number
