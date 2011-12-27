@@ -1,7 +1,7 @@
 #!/usr/bin/python
 # Copyright 2012, Alex Light.
 #
-# This file is part of Reddit-background-updater (RBU).
+# This file is part of Reddit background updater (RBU).
 #
 # RBU is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -43,27 +43,33 @@ configuration = namedtuple("configuration",
                             "save_location",
                             "picture_endings",
                             "subreddit",
-                            "allow_nsfw"])
+                            "allow_nsfw",
+			    "size_limit"])
 
 #THE DEFAULT CONFIGURATION SETTINGS
 default_conf = configuration(overwrite = False,
-                             num_tries = 3,
-                             save_locaton = os.path.join(os.path.expanduser('~'),
-                                                         '.background_getter'),
+                             num_tries = None,
+                             save_location = os.path.join(os.path.expanduser('~'),
+                                                          '.background_getter'),
                              picture_endings = ['png', 'jpg', 'jpeg', 'gif'],
-                             subreddit = 'wallpaper+wallpapers')
-
+                             subreddit  = 'wallpaper+wallpapers',
+			     allow_nsfw = False,
+			     size_limit = None)
 SYSLOG_IDENT = 'wallpaper_rotater-dev'#name in the log
 #the min log_level. should put to LOG_WARNING after done testing
 SYSLOG_LOGMASK = syslog.LOG_UPTO(DEBUG)
 GCONF_KEY = '/desktop/gnome/background/picture_filename'#key to write new wallpaper to
 JSON_PAGE_FORMAT = 'http://www.reddit.com/r/{0}.json'#where the list of possible wallpapers is
-IMGUR_JSON_FORMAT = "http://api.imgur.com/2/image/{0}.json"
+IMGUR_JSON_FORMAT = "http://api.imgur.com/2/image/{0}.json"#imgur api page
 
 class Failed(Exception):
     pass
 class Unsuccessful(Exception):
     pass
+
+size_limit = namedtuple("size_limit",
+			["min_x","min_y",
+			 "max_x","max_y"])
 
 def start_update(conf):
     """Updates the background image using the configuration stored in conf"""
@@ -72,16 +78,17 @@ def start_update(conf):
     logit(INFO, "Postid for the image is {0}".format(post_id))
     save_name = os.path.join(conf.save_location,
                              #the name will be <id>.<file_type>
-                             "".join((post_id,'.', imageURL.split('.')[-1])))
+                             ".".join((post_id, imageURL.split('.')[-1])))
     write_file(conf, imageURL, save_name)
     set_as_background(conf, save_name)
     return
 
 def write_file(conf, url, save_name):
-    """Takes in a configuration object, the url string and a file name
-       It will attempt to download the file at the url and will save it
-       to the given location, if there is already a file at save_name it
-       will niether download nor save the file.
+    """
+    Takes in a configuration object, the url string and a file name
+    It will attempt to download the file at the url and will save it
+    to the given location, if there is already a file at save_name it
+    will niether download nor save the file.
     """
     if conf.overwrite or not os.access(save_name, os.F_OK):
         if not os.access(os.path.dirname(save_name), os.W_OK):
@@ -98,8 +105,9 @@ def write_file(conf, url, save_name):
     return
 
 def get_image_data(conf, data):
-    """Selects a background image from the data conforming to the configuration
-       and returns its url as well as its reddit post-id number
+    """
+    Selects a background image from the data conforming to the configuration
+    and returns its url as well as its reddit post-id number
     """
     for child in data[0:conf.num_tries]:
         if conf.allow_nsfw == False and child["data"]["thumbnail"] == "nsfw":
@@ -121,7 +129,7 @@ def get_image_data(conf, data):
                 data = json.loads(urlopen(IMGUR_JSON_FORMAT.format(name)).read())
             except HTTPError:
                 continue
-            url = data["image"]['links']["original"]
+            url = data["image"]["links"]["original"]
             logit(INFO, 'found {0}, link was not direct'.format(url))
             return url, child['data']['id']
     logit(syslog.LOG_WARNING, "none of the possibilities could be used")
