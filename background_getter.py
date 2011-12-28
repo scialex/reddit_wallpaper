@@ -13,7 +13,7 @@
 # You should have received a copy of the GNU General Public License
 # along with RBU.  If not, see <http://www.gnu.org/licenses/>.
 #
-#TODO add size min and max arguments
+#DONE add size min and max arguments
 #TODO redo get image data so above will work.
 #TODO make it work with command line arguments
 #TODO make it work with a real config file
@@ -26,6 +26,7 @@
 #TODO package it
 #TODO profit
 
+import argparse
 import json
 import gconf
 import syslog
@@ -196,6 +197,21 @@ def set_as_background(conf, file_location):
         logit(ERROR, 'was unable to change the background')
         raise Failed("could not set gconf key")
     return
+
+def get_config():
+    parser = argparse.ArgumentParser(description = "this will retrieve a background from some subreddit and set its top image link as the background")
+    ovrwrt = parser.add_mutually_exclusive_group()
+    ovrwrt.add_argument('-o','--no-overwrite', action = 'store_const', const = False,
+			default = False, 
+			help = "do not overwrite any preexisting image files if the name is the same, this is enabled by default",
+			dest = "overwrite")
+    ovrwrt.add_argument('-O','--overwrite', action = 'store_const', const = True.
+			default = False,
+			help = "redownload and overwrite any files bearing the same name as the one being downloaded, this is disabled by default",
+			dest = "overwrite")
+    parser.add_argument('subreddit', nargs = '*', type = string, 
+			default = ["wallpaper", "wallpapers"],
+			help = "the subreddits to check for images")
 
 if __name__ == '__main__':
     conf = default_conf
