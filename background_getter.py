@@ -27,13 +27,14 @@
 #TODO profit
 
 import argparse
-import json
 import gconf
-import syslog
 import imagefacts
+import json
+import syslog
 import os
-from syslog import LOG_DEBUG as DEBUG, LOG_INFO as INFO, LOG_WARNING as WARNING, LOG_ERR as ERROR
 from collections import namedtuple
+from syslog  import LOG_DEBUG   as DEBUG,   LOG_INFO as INFO
+from syslog  import LOG_WARNING as WARNING, LOG_ERR as ERROR
 from urllib2 import urlopen, HTTPError
 
 #temporary will change to better logging system.
@@ -69,8 +70,16 @@ JSON_PAGE_FORMAT = 'http://www.reddit.com/r/{0}.json'#where the list of possible
 IMGUR_JSON_FORMAT = "http://api.imgur.com/2/image/{0}.json"#imgur api page
 
 class Failed(Exception):
+    """
+    This is used when there is a failure and it was not compleatly
+    unexpected but was totally fatal (i.e. no internet)
+    """
     pass
+
 class Unsuccessful(Exception):
+    """
+    This is used when there is a failure but it is not fatal
+    """
     pass
 
 
@@ -183,7 +192,7 @@ def select_image(conf, data):
 	    url = data["image"]["links"]["original"]
             logit(INFO, 'found {0}, link was not direct'.format(url))
             return url, child['data']['id']
-    logit(syslog.LOG_WARNING, "none of the possibilities could be used")
+    logit(WARNING, "none of the possibilities could be used")
     raise Failed("could not get a suitable url")
 
 def set_as_background(conf, file_location):
@@ -201,19 +210,59 @@ def set_as_background(conf, file_location):
 def get_config():
     parser = argparse.ArgumentParser(description = "this will retrieve a background from some subreddit and set its top image link as the background")
     ovrwrt = parser.add_mutually_exclusive_group()
-    ovrwrt.add_argument('-o','--no-overwrite', action = 'store_const', const = False,
-			default = False, 
+    ovrwrt.add_argument('-o','--no-overwrite', action = 'store_false',
 			help = "do not overwrite any preexisting image files if the name is the same, this is enabled by default",
-			dest = "overwrite")
-    ovrwrt.add_argument('-O','--overwrite', action = 'store_const', const = True.
-			default = False,
+			dest = "overwrite",
+			default = False)
+    ovrwrt.add_argument('-O','--overwrite', action = 'store_true', 
 			help = "redownload and overwrite any files bearing the same name as the one being downloaded, this is disabled by default",
 			dest = "overwrite")
-    parser.add_argument('subreddit', nargs = '*', type = string, 
+    size = parser.add_argument_group("Size limits",
+				     "set the size limit for the images to be downloaded. Each value must be either a positive non-zero number or none if there is no limit for that variable")
+    def n_or_none(s):
+	if s == 'None' or s == 'none':
+	    return None
+	try:
+	    v = int(s)
+	    if v > 0:
+		return v
+	    else:
+		raise Exception()
+	except Exception:
+	    msg = "{0} is not a valid input. The input shoudl either be a positive non-zero number or none".format(s)
+	    raise argparse.ArgumentTypeError(msg)
+
+    size.add_argument("--min",
+		      type = n_or_none,
+		      nargs = 2,
+		      default = [None, None],
+		      help = "this specifices the minimum size of the image. Each argument must be either a positive non-zero number or the word 'none'")
+    size.add_argument("--max",
+		      type = n_or_none,
+		      nargs = 2,
+		      default = [None, None],
+		      help = "this specifices the maximum size of the image. Each argument must be either a positive non-zero number or the word 'none'")
+    parser.add_argument('subreddit', nargs = '*', type = str, 
 			default = ["wallpaper", "wallpapers"],
 			help = "the subreddits to check for images")
+    nsfwallow = parser.add_mutually_exclusive_group()
+    nsfwallow.add_argument("-N","--allow-nsfw", action = 'store_true',
+		           dest = "allow_nsfw",
+			   help = "allow nsfw content to be downloaded")
+    nsfwallow.add_argument('-n','--no-nsfw', action = 'store_false',
+			   dest = 'allow_nsfw',
+			   default = False,
+			   help = "do not download any content marked nsfw")
+    parser.add_argument('-t','--tries', type = n_or_none,
+			action = 'store',
+			default = None, 
+			metavar = 'number',
+			dest = 'num_tries',
+			help = "this specifies the number of images to check before giving up on finding a good match. if the value is 'none' it will never give up")
+    return parser.parse_args()
+print repr(get_config())
 
-if __name__ == '__main__':
+if False:# __name__ == '__main__':
     conf = default_conf
     syslog.openlog(SYSLOG_IDENT)
     syslog.setlogmask(SYSLOG_LOGMASK)
