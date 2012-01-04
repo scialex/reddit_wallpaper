@@ -47,10 +47,13 @@ default_conf = configuration(overwrite = False,
                              num_tries = None,
                              save_location = os.path.join(os.path.expanduser('~'),
                                                           '.background_getter'),
-                             picture_endings = ['png', 'jpg', 'jpeg', 'gif'],
+                             save_file = '@',
+			     picture_endings = ['png', 'jpg', 'jpeg', 'gif'],
                              subreddit  = 'wallpaper+wallpapers',
 			     allow_nsfw = False,
-			     size_limit = None)#size_limit(0,0,1660,1000))
+			     size_limit = None,
+			     logger = logit)#size_limit(0,0,1660,1000))
+
 SYSLOG_IDENT = 'wallpaper-rotater-dev'#name in the log
 #the min log_level. should put to LOG_WARNING after done testing
 SYSLOG_LOGMASK = syslog.LOG_UPTO(DEBUG)
@@ -197,7 +200,7 @@ def set_as_background(conf, file_location):
     return
 
 if __name__ == '__main__':
-    print repr(get_config())
+    print repr(parse_cmd_line())
     conf = default_conf
     syslog.openlog(SYSLOG_IDENT)
     syslog.setlogmask(SYSLOG_LOGMASK)
@@ -216,5 +219,5 @@ if __name__ == '__main__':
         logit(ERROR,
               'an uncaught exception was thrown, reason given was {0}, type was given as {1}, args were {2}'.format(e.args[0], type(e), e.args))
     else:
-        logit(INFO, 'all done changing wallpaper')
+        conf.logger(INFO, 'all done changing wallpaper')
     syslog.closelog()

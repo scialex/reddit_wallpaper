@@ -10,17 +10,34 @@ configuration = namedtuple("configuration",
                            ["overwrite",
                             "num_tries",
                             "save_location",
+			    "save_file",
                             "picture_endings",
                             "subreddit",
                             "allow_nsfw",
-			    "size_limit"])
+			    "size_limit",
+			    "logger"])
 
 size_limit = namedtuple("size_limit",
 			["min_x","min_y",
 			 "max_x","max_y"])
 
-def get_config():
+def parse_cmd_line(nspace = argparse.Namespace()):
     parser = argparse.ArgumentParser(description = "this will retrieve a background from some subreddit and set its top image link as the background")
+    savloc = parser.add_argument_group("Save location","set the folder and file name for the downloaded pictures")
+    savloc.add_argument("--save-location",
+			action = 'store',
+			nargs = 1,
+			type = str,
+			default = '~/.background_getter',
+			metavar = "FOLDER",
+			help = "the location where the downloaded file will be saved.")
+    savloc.add_argument("--save-file",
+			action = 'store',
+			nargs = 1,
+			default = '@',
+			type = str,
+			metavar = 'NAME',
+			help = "the name by which you want the downloaded file to be saved under. note all occurances of '@' are replaced by the reddit post id number of the reddit submission, this will be unique to each file. if you do not use @ at all in the name be sure that this is set to overwrite already saved files")
     ovrwrt = parser.add_mutually_exclusive_group()
     ovrwrt.add_argument('-o','--no-overwrite', action = 'store_false',
 			help = "do not overwrite any preexisting image files if the name is the same, this is enabled by default",
@@ -43,15 +60,20 @@ def get_config():
 	except Exception:
 	    msg = "{0} is not a valid input. The input shoudl either be a positive non-zero number or none".format(s)
 	    raise argparse.ArgumentTypeError(msg)
-
+    parser.add_argument("--endings", type = str,
+			action = 'store',
+			nargs = '+',
+			help = "the file type endings to accept for download")
     size.add_argument("--min",
 		      type = n_or_none,
 		      nargs = 2,
+		      metavar = ('MIN_X', 'MIN_Y'),
 		      default = [None, None],
 		      help = "this specifices the minimum size of the image. Each argument must be either a positive non-zero number or the word 'none'")
     size.add_argument("--max",
 		      type = n_or_none,
 		      nargs = 2,
+		      metavar = ("MAX_X", 'MAX_Y'),
 		      default = [None, None],
 		      help = "this specifices the maximum size of the image. Each argument must be either a positive non-zero number or the word 'none'")
     parser.add_argument('subreddit', nargs = '*', type = str, 
@@ -70,5 +92,17 @@ def get_config():
 			default = None, 
 			metavar = 'number',
 			dest = 'num_tries',
-			help = "this specifies the number of images to check before giving up on finding a good match. if the value is 'none' it will never give up")
-    return parser.parse_args()
+			help = "this specifies the number of images to check before giving up on finding a good match. if the value is 'none' it will never give up trying to find an image it can use")
+    parser.add_argument('--config', action = 'store',
+		        nargs = 1,
+			dest = 'cfg',
+			help = 'use the given config file instead of the default ones') 
+    parser.add_argument('--debug', action = 'store_true',
+		        default = False,
+		        help = "print out debug information")
+    return parser.parse_args(namespace = nspace)
+
+def parse_config_files(files = CONFIG_LOC):
+    pass
+
+print vars(parse_cmd_line())
