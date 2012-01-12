@@ -1,9 +1,12 @@
 #!/usr/bin/python
 
 #this file will parse the config files and the cli input for the application
+import os
 import argparse
 from loggers import quiet, debug, normal
 from collections import namedtuple
+
+DEFAULT_LOG_LEVEL = 'debug'#change later
 
 CONFIG_LOC = ['/etc/reddit_wallpaper','~/.reddit_wallpaper','./reddit_wallpaper']
 
@@ -22,16 +25,23 @@ size_limit = namedtuple("size_limit",
 			["min_x","min_y",
 			 "max_x","max_y"])
 
+_loggers = {'quiet'  : quiet,
+	    'debug'  : debug,
+	    'normal' : normal}
+
+def get_config():
+    return convert_to_configuration(parse_cmd_line())
+
 def convert_to_configuration(nspace):
     return configuration(overwrite = nspace.overwrite,
 			 num_tries = nspace.num_tries,
-			 save_location = nspace.save_location,
+			 save_location = os.path.expanduser(nspace.save_location),
 			 save_file = nspace.save_file,
 			 picture_endings = nspace.endings,
 			 subreddit = '+'.join(nspace.subreddit) + '/' + nspace.sort_type,
 			 allow_nsfw = nspace.allow_nsfw,
 			 size_limit = None if [None, None] == nspace.min == nspace.max else size_limit(*(nspace.min + nspace.max)),
-			 logger = normal)
+			 logger = _loggers[nspace.logger])
      
      
 def parse_cmd_line(nspace = argparse.Namespace()):
@@ -75,6 +85,7 @@ def parse_cmd_line(nspace = argparse.Namespace()):
 	    raise argparse.ArgumentTypeError(msg)
     parser.add_argument("--endings", type = str,
 			action = 'store',
+			default = ['png', 'jpg', 'jpeg', 'gif'],
 			nargs = '+',
 			help = "the file type endings to accept for download")
     size.add_argument("--min",
@@ -130,12 +141,20 @@ def parse_cmd_line(nspace = argparse.Namespace()):
 		        nargs = 1,
 			dest = 'cfg',
 			help = 'use the given config file instead of the default ones') 
-    parser.add_argument('--debug', action = 'store_true',
-		        default = False,
-		        help = "print out debug information")
+    printers = parser.add_argument_group("Debug info", "these control how much information is printed onto the screen and into the logs")
+    prnts = printers.add_mutually_exclusive_group()
+    prnts.add_argument('--debug', action = 'store_const',
+		       default = DEFAULT_LOG_LEVEL,
+		       dest = 'logger',
+		       const = 'debug',
+		       help = "print out debug information")
+    prnts.add_argument('--quiet', action = 'store_const',
+		       dest = 'logger',
+		       const = 'quiet',
+		       help = "do not print out status info")
     return parser.parse_args(namespace = nspace)
 
 def parse_config_files(files = CONFIG_LOC):
     pass
 
-print vars(parse_cmd_line())
+print convert_to_configuration(parse_cmd_line())

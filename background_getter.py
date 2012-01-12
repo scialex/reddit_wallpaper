@@ -29,18 +29,10 @@
 import gconf
 import imagefacts
 import json
-#import syslog
 import os
-#from syslog  import LOG_DEBUG   as DEBUG,   LOG_INFO as INFO
-#from syslog  import LOG_WARNING as WARNING, LOG_ERR as ERROR
 from urllib2 import urlopen, HTTPError
 from config import *
 from loggers import *
-#temporary will change to better logging system.
-#def conf.logger(lev, msg):
-#    print msg
-#    syslog.syslog(lev, msg)
-#conf.logger = syslog.syslog
 
 #THE DEFAULT CONFIGURATION SETTINGS
 default_conf = configuration(overwrite = False,
@@ -54,9 +46,6 @@ default_conf = configuration(overwrite = False,
 			     size_limit = None,
 			     logger = debug)#size_limit(0,0,1660,1000))
 
-SYSLOG_IDENT = 'wallpaper-rotater-dev'#name in the log
-#the min log_level. should put to LOG_WARNING after done testing
-SYSLOG_LOGMASK = syslog.LOG_UPTO(DEBUG)
 GCONF_KEY = '/desktop/gnome/background/picture_filename'#key to write new wallpaper to
 JSON_PAGE_FORMAT = 'http://www.reddit.com/r/{0}.json'#where the list of possible wallpapers is
 IMGUR_JSON_FORMAT = "http://api.imgur.com/2/image/{0}.json"#imgur api page
@@ -203,7 +192,7 @@ def set_as_background(conf, file_location):
 
 if __name__ == '__main__':
     #print repr(parse_cmd_line())
-    conf = default_conf
+    conf = get_config()#default_conf
     #syslog.openlog(SYSLOG_IDENT)
     #syslog.setlogmask(SYSLOG_LOGMASK)
     conf.logger(INFO, 'Starting change of wallpaper')
