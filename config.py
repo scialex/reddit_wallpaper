@@ -2,6 +2,7 @@
 
 #this file will parse the config files and the cli input for the application
 import argparse
+from loggers import quiet, debug, normal
 from collections import namedtuple
 
 CONFIG_LOC = ['/etc/reddit_wallpaper','~/.reddit_wallpaper','./reddit_wallpaper']
@@ -21,6 +22,18 @@ size_limit = namedtuple("size_limit",
 			["min_x","min_y",
 			 "max_x","max_y"])
 
+def convert_to_configuration(nspace):
+    return configuration(overwrite = nspace.overwrite,
+			 num_tries = nspace.num_tries,
+			 save_location = nspace.save_location,
+			 save_file = nspace.save_file,
+			 picture_endings = nspace.endings,
+			 subreddit = '+'.join(nspace.subreddit) + '/' + nspace.sort_type,
+			 allow_nsfw = nspace.allow_nsfw,
+			 size_limit = None if [None, None] == nspace.min == nspace.max else size_limit(*(nspace.min + nspace.max)),
+			 logger = normal)
+     
+     
 def parse_cmd_line(nspace = argparse.Namespace()):
     parser = argparse.ArgumentParser(description = "this will retrieve a background from some subreddit and set its top image link as the background")
     savloc = parser.add_argument_group("Save location","set the folder and file name for the downloaded pictures")
@@ -93,6 +106,26 @@ def parse_cmd_line(nspace = argparse.Namespace()):
 			metavar = 'number',
 			dest = 'num_tries',
 			help = "this specifies the number of images to check before giving up on finding a good match. if the value is 'none' it will never give up trying to find an image it can use")
+    sorter = parser.add_argument_group('Sort Type',
+				       "Select the section of the subreddit to use for sorting") 
+    sorttype = sorter.add_mutually_exclusive_group()
+    sorttype.add_argument('--hot', action = 'store_const',
+			  const = '', 
+			  dest = 'sort_type',
+			  default = '',
+			  help = "The default. Use the 'What's Hot' section of the subreddit")
+    sorttype.add_argument('--new', action = 'store_const',
+			  const = 'new',
+			  dest = 'sort_type',
+			  help = "Use the 'New' section of the subreddit")
+    sorttype.add_argument('--controversial', action = 'store_const',
+			  const = 'controversial',
+			  dest = 'sort_type',
+			  help = "Use the 'Controversial' section of the subreddit")
+    sorttype.add_argument('--top', action = 'store_const',
+			  const = 'top',
+			  dest = 'sort_type',
+			  help = "Use the 'Top' section of the subreddit")
     parser.add_argument('--config', action = 'store',
 		        nargs = 1,
 			dest = 'cfg',
