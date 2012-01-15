@@ -107,6 +107,8 @@ def check_size(conf, img_size):
     y sizes of the image. it returns true if the size is permitted by the 
     configuration given
     """
+    if img_size is None:
+	return True # we were not able to determine the size of the image
     size_limit = conf.size_limit
     x = img_size[0]
     y = img_size[1] 
@@ -147,7 +149,7 @@ def select_image(conf, data):
 		if conf.size_limit is not None:
 		    size = imagefacts.facts(url)[1:]
 		else:
-		    size = None # it wont be checked anyway,
+		    size = None 
 	    except Exception as e:
 		conf.logger(WARNING,
 		            "something happened while trying to retrieve the image at {0} in order to determine its size. type of exception was {1} and reason given was {2}".format(url, type(e), e.args))
