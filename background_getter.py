@@ -49,6 +49,7 @@ default_conf = configuration(overwrite = False,
 GCONF_KEY = '/desktop/gnome/background/picture_filename'#key to write new wallpaper to
 JSON_PAGE_FORMAT = 'http://www.reddit.com/r/{0}.json'#where the list of possible wallpapers is
 IMGUR_JSON_FORMAT = "http://api.imgur.com/2/image/{0}.json"#imgur api page
+FLICKR_JSON_FORMAT = 'http://api.flickr.com/services/rest/?method=flickr.photos.getSizes&api_key=eaf4581fb8d0655b0a314d13ab54ef46&photo_id={0}&format=json&nojsoncallback=1'
 
 class Failed(Exception):
     """
@@ -143,7 +144,24 @@ def select_image(conf, data):
 		continue
             conf.logger(INFO, 'found {0}, link was direct to i.imgur.com'.format(url))
             return url, child['data']['id']
-
+	
+	elif child["data"]["domain"] == 'flickr.com':
+	    try:
+		#the url splits into ['http:','','www.flickr,com','photos','username','photoid',etc]
+		#                       0      1           2          3       4          *5*    etc
+		photo_id = url.split('/')[5]
+		conf.logger(DEBUG, 'flickr link found. url is {0}, photo_id determined to be {1}'.format(url, photo_id))
+		data = json.loads(urlopen(FLICKR_JSON_FORMAT.format(photo_id)).read())
+	        if data['stat'] != 'ok':
+		    conf.logger(WARNING, "got a failure response from the flickr api. status was given as {0}. message was given as {1}. skipping this link".format(data['stat'], data['message']))
+		    continue
+	        return choose_flickr_size(conf, data), child['data']['id']
+	    except HTTPError as h:
+		conf.logger(WARNING, "an HTTPError was caught, reason given was {0}. skipping this link".format(str(h)))
+		continue
+	    except Unsuccessful:
+		conf.logger(DEBUG, "flickr did not have any link that was the right size")
+		continue
         elif child['data']['url'].split('.')[-1] in conf.picture_endings:
 	    try:
 		if conf.size_limit is not None:
@@ -180,6 +198,23 @@ def select_image(conf, data):
     conf.logger(WARNING, "none of the possibilities could be used")
     raise Failed("could not get a suitable url")
 
+def choose_flickr_size(conf, data):
+    best = None
+    best_size = (0,0)
+    for pic in data['sizes']['size']:
+	pic['width'] = int(pic['width'])
+	pic['height'] = int(pic['height'])
+	if (check_size(conf, (pic['width'], pic['height'])) and
+	    pic['width']  >= best_size[0] and
+	    pic['height'] >= best_size[1]):
+	    best_size = (pic['width'], pic['height'])
+	    best = pic
+    if best is None:
+	raise Unsuccessful()
+    else:
+	conf.logger(DEBUG, 'chose size to be one labled {0}'.format(best['label']))
+	return best['source'].replace('\\','')
+
 def set_as_background(conf, file_location):
     """Sets the background path to the given path"""
     client = gconf.client_get_default()
@@ -192,7 +227,7 @@ def set_as_background(conf, file_location):
         raise Failed("could not set gconf key")
     return
 
-if __name__ == '__main__':
+def main():
     #print repr(parse_cmd_line())
     conf = get_config()#default_conf
     #syslog.openlog(SYSLOG_IDENT)
@@ -213,4 +248,6 @@ if __name__ == '__main__':
                     'an uncaught exception was thrown, reason given was {0}, type was given as {1}, args were {2}'.format(e.args[0], type(e), e.args))
     else:
         conf.logger(INFO, 'all done changing wallpaper')
-    #syslog.closelog()
+
+if __name__ == '__main__':
+    main()
