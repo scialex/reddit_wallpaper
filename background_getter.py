@@ -44,7 +44,7 @@ default_conf = configuration(overwrite = False,
                              subreddit  = 'wallpaper+wallpapers',
 			     allow_nsfw = False,
 			     size_limit = None,
-			     logger = debug)#size_limit(0,0,1660,1000))
+			     logger = debug)
 
 GCONF_KEY = '/desktop/gnome/background/picture_filename'#key to write new wallpaper to
 JSON_PAGE_FORMAT = 'http://www.reddit.com/r/{0}.json'#where the list of possible wallpapers is
@@ -228,10 +228,7 @@ def set_as_background(conf, file_location):
     return
 
 def main():
-    #print repr(parse_cmd_line())
-    conf = get_config()#default_conf
-    #syslog.openlog(SYSLOG_IDENT)
-    #syslog.setlogmask(SYSLOG_LOGMASK)
+    conf = get_config()
     conf.logger(INFO, 'Starting change of wallpaper')
     try:
         start_update(conf)
