@@ -157,4 +157,4 @@ def parse_cmd_line(nspace = argparse.Namespace()):
 def parse_config_files(files = CONFIG_LOC):
     pass
 
-print convert_to_configuration(parse_cmd_line())
+print str(convert_to_configuration(parse_cmd_line())).replace(',',',\n             ')
