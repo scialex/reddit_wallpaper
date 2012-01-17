@@ -16,6 +16,7 @@
 #this file will parse the config files and the cli input for the application
 import os
 import argparse
+import sys
 from loggers import quiet, debug, normal
 from collections import namedtuple
 
@@ -26,12 +27,12 @@ CONFIG_LOC = ['/etc/reddit_wallpaper','~/.reddit_wallpaper','./reddit_wallpaper'
 configuration = namedtuple("configuration",
                            ["overwrite",
                             "num_tries",
-                            "save_location",
 			    "save_file",
                             "picture_endings",
                             "subreddit",
                             "allow_nsfw",
 			    "size_limit",
+			    "respect_flickr_nodownload",
 			    "logger"])
 
 size_limit = namedtuple("size_limit",
@@ -48,38 +49,31 @@ def get_config():
 def convert_to_configuration(nspace):
     return configuration(overwrite = nspace.overwrite,
 			 num_tries = nspace.num_tries,
-			 save_location = os.path.expanduser(nspace.save_location),
-			 save_file = nspace.save_file,
+			 save_file = os.path.realpath(
+			                 os.path.expandvars(
+					    os.path.expanduser(nspace.save_file))),
 			 picture_endings = nspace.endings,
 			 subreddit = '+'.join(nspace.subreddit) + '/' + nspace.sort_type,
 			 allow_nsfw = nspace.allow_nsfw,
 			 size_limit = None if [None, None] == nspace.min == nspace.max else size_limit(*(nspace.min + nspace.max)),
+			 respect_flickr_nodownload = nspace.respect_flickr_nodownload,
 			 logger = _loggers[nspace.logger])
-     
-     
+
 def parse_cmd_line(nspace = argparse.Namespace()):
     parser = argparse.ArgumentParser(description = "this will retrieve a background from some subreddit and set its top image link as the background")
-    savloc = parser.add_argument_group("Save location","set the folder and file name for the downloaded pictures")
-    savloc.add_argument("--save-location",
+    parser.add_argument('-o','--output',"--save-file",
 			action = 'store',
-			nargs = 1,
+			default = '~/.background_getter/@',
 			type = str,
-			default = '~/.background_getter',
-			metavar = "FOLDER",
-			help = "the location where the downloaded file will be saved.")
-    savloc.add_argument("--save-file",
-			action = 'store',
-			nargs = 1,
-			default = '@',
-			type = str,
+			dest = 'save_file',
 			metavar = 'NAME',
-			help = "the name by which you want the downloaded file to be saved under. note all occurances of '@' are replaced by the reddit post id number of the reddit submission, this will be unique to each file. if you do not use @ at all in the name be sure that this is set to overwrite already saved files")
+			help = "the file by which you want the downloaded file to be saved under. note all occurances of '@' are replaced by the reddit post id number of the reddit submission, this will be unique to each file. if you do not use @ at all in the name be sure that this is set to overwrite already saved files")
     ovrwrt = parser.add_mutually_exclusive_group()
-    ovrwrt.add_argument('-o','--no-overwrite', action = 'store_false',
+    ovrwrt.add_argument('--no-overwrite', action = 'store_false',
 			help = "do not overwrite any preexisting image files if the name is the same, this is enabled by default",
 			dest = "overwrite",
 			default = False)
-    ovrwrt.add_argument('-O','--overwrite', action = 'store_true', 
+    ovrwrt.add_argument('--overwrite', action = 'store_true', 
 			help = "redownload and overwrite any files bearing the same name as the one being downloaded, this is disabled by default",
 			dest = "overwrite")
     size = parser.add_argument_group("Size limits",
@@ -150,6 +144,20 @@ def parse_cmd_line(nspace = argparse.Namespace()):
 			  const = 'top',
 			  dest = 'sort_type',
 			  help = "Use the 'Top' section of the subreddit")
+    flickr_options = parser.add_argument_group("Flickr options",
+					       'Options relating to the handling of images from flickr.com')
+    respect_flickr = flickr_options.add_mutually_exclusive_group()
+    respect_flickr.add_argument('--ignore-flickr-download-flag',
+				 action = 'store_const',
+				 dest = 'respect_flickr_nodownload',
+				 default = True,
+				 const = False,
+				 help = "Ignore the no download flag on images stored on flikr, downloading them even if the poster has disabled downloads")
+    respect_flickr.add_argument('--respect-flickr-download-flag',
+				 action = 'store_const',
+				 const = True,
+				 dest = 'respect_flickr_nodownload',
+				 help = "respect the wishes of the poster of images hosted on Flickr, only downloading them if the poster has enabled it, This is activated by default.")
     parser.add_argument('--config', action = 'store',
 		        nargs = 1,
 			dest = 'cfg',
@@ -170,4 +178,8 @@ def parse_cmd_line(nspace = argparse.Namespace()):
 def parse_config_files(files = CONFIG_LOC):
     pass
 
-print str(convert_to_configuration(parse_cmd_line())).replace(',',',\n             ')
+try: 
+    print str(convert_to_configuration(parse_cmd_line())).replace(',',',\n             ')
+except Exception:
+    pass
+

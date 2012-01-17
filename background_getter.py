@@ -34,18 +34,6 @@ from urllib2 import urlopen, HTTPError
 from config import *
 from loggers import *
 
-#THE DEFAULT CONFIGURATION SETTINGS
-default_conf = configuration(overwrite = False,
-                             num_tries = None,
-                             save_location = os.path.join(os.path.expanduser('~'),
-                                                          '.background_getter'),
-                             save_file = '@',
-			     picture_endings = ['png', 'jpg', 'jpeg', 'gif'],
-                             subreddit  = 'wallpaper+wallpapers',
-			     allow_nsfw = False,
-			     size_limit = None,
-			     logger = debug)
-
 GCONF_KEY = '/desktop/gnome/background/picture_filename'#key to write new wallpaper to
 JSON_PAGE_FORMAT = 'http://www.reddit.com/r/{0}.json'#where the list of possible wallpapers is
 IMGUR_JSON_FORMAT = "http://api.imgur.com/2/image/{0}.json"#imgur api page
@@ -73,10 +61,8 @@ def start_update(conf):
                 "retrieved json page from reddit successfully")
     imageURL, post_id = select_image(conf, json_data)
     conf.logger(INFO, "Postid for the image is {0}".format(post_id))
-    save_name = os.path.join(conf.save_location,
-                             #the name will be <id>.<file_type>
-                             ".".join((conf.save_file.replace('@', post_id),
-			               imageURL.split('.')[-1])))
+    save_name = '.'.join((conf.save_file.replace('@', post_id),# <- the filename
+		          imageURL.split('.')[-1])) # <- the filetype
     write_file(conf, imageURL, save_name)
     set_as_background(conf, save_name)
     return
@@ -125,6 +111,7 @@ def select_image(conf, data):
     """
     for child in data[0:conf.num_tries]:
         url = child["data"]["url"]
+	conf.logger(DEBUG, "checking reddit post {0}. Is a link to {1}".format(child['data']['id'], url))
         if conf.allow_nsfw == False and child["data"]["thumbnail"] == "nsfw":
 	    conf.logger(INFO, "the image at {0} was marked NSFW, skiping".format(url))
             continue
@@ -154,6 +141,9 @@ def select_image(conf, data):
 		data = json.loads(urlopen(FLICKR_JSON_FORMAT.format(photo_id)).read())
 	        if data['stat'] != 'ok':
 		    conf.logger(WARNING, "got a failure response from the flickr api. status was given as {0}. message was given as {1}. skipping this link".format(data['stat'], data['message']))
+		    continue
+		if data['sizes']['candownload'] == 0 and conf.respect_flickr_nodownload:
+		    conf.logger(INFO, "The poster declined to allow downloading of his image and the configuration was set to respect his wishes")
 		    continue
 	        return choose_flickr_size(conf, data), child['data']['id']
 	    except HTTPError as h:
