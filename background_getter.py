@@ -34,17 +34,6 @@ from urllib2 import urlopen, HTTPError
 from config import *
 from loggers import *
 
-#THE DEFAULT CONFIGURATION SETTINGS
-default_conf = configuration(overwrite = False,
-                             num_tries = None,
-                             save_location = os.path.join(os.path.expanduser('~'),
-                                                          '.background_getter'),
-                             save_file = '@',
-			     picture_endings = ['png', 'jpg', 'jpeg', 'gif'],
-                             subreddit  = 'wallpaper+wallpapers',
-			     allow_nsfw = False,
-			     size_limit = None,
-			     logger = debug)
 
 GCONF_KEY = '/desktop/gnome/background/picture_filename'#key to write new wallpaper to
 JSON_PAGE_FORMAT = 'http://www.reddit.com/r/{0}.json'#where the list of possible wallpapers is
@@ -154,6 +143,9 @@ def select_image(conf, data):
 		data = json.loads(urlopen(FLICKR_JSON_FORMAT.format(photo_id)).read())
 	        if data['stat'] != 'ok':
 		    conf.logger(WARNING, "got a failure response from the flickr api. status was given as {0}. message was given as {1}. skipping this link".format(data['stat'], data['message']))
+		    continue
+		if data['sizes']['candownload'] == 0 and conf.respect_flickr_nodownload:
+		    conf.logger(INFO, "The poster declined to allow downloading of his image and the configuration was set to respect his wishes")
 		    continue
 	        return choose_flickr_size(conf, data), child['data']['id']
 	    except HTTPError as h:
