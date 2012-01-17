@@ -1,4 +1,15 @@
 This is a program that will updated the wallpaper to match the top hit on some subreddit.
-This program requires that imagefacts v1.1+ is installed. http://pypi.python.org/pypi/imagefacts this is used in determining the size and type of images
-this program requires that python-argparse is installed or the default python version is 2.7+
-this program might require python-oauth if i ever get around to adding album support prob not
+This program requires that imagefacts v1.1+ is installed. http://pypi.python.org/pypi/imagefacts this is used in determining the size and type of images. To get this install pip and run 'pip install imagefacts'. I should probably make this dependency optional.
+This program requires that python-argparse is installed or the default python version is 2.7+
+this program might require python-oauth if i ever get around to adding album support. prob not
+
+To run
+
+0) clone this repository into some folder
+
+1) call: python /path/to/folder/you/cloned [options] [subreddit1 [subreddit2 ...]]
+  (you might want to make this into a small script and put it in your ~/bin folder or another thing on your path.
+
+This program has only been tested on Ubuntu Linux 10.04.3 but I have reason to believe it will work on any system which uses gconf to store the background file name.
+
+
