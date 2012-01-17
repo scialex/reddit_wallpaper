@@ -27,7 +27,6 @@ CONFIG_LOC = ['/etc/reddit_wallpaper','~/.reddit_wallpaper','./reddit_wallpaper'
 configuration = namedtuple("configuration",
                            ["overwrite",
                             "num_tries",
-                            "save_location",
 			    "save_file",
                             "picture_endings",
                             "subreddit",
@@ -50,31 +49,25 @@ def get_config():
 def convert_to_configuration(nspace):
     return configuration(overwrite = nspace.overwrite,
 			 num_tries = nspace.num_tries,
-			 save_location = os.path.expanduser(nspace.save_location),
-			 save_file = nspace.save_file,
+			 save_file = os.path.realpath(
+			                 os.path.expandvars(
+					    os.path.expanduser(nspace.save_file))),
 			 picture_endings = nspace.endings,
 			 subreddit = '+'.join(nspace.subreddit) + '/' + nspace.sort_type,
 			 allow_nsfw = nspace.allow_nsfw,
 			 size_limit = None if [None, None] == nspace.min == nspace.max else size_limit(*(nspace.min + nspace.max)),
 			 respect_flickr_nodownload = nspace.respect_flickr_nodownload,
 			 logger = _loggers[nspace.logger])
-     
-     
+
 def parse_cmd_line(nspace = argparse.Namespace()):
     parser = argparse.ArgumentParser(description = "this will retrieve a background from some subreddit and set its top image link as the background")
-    savloc = parser.add_argument_group("Save location","set the folder and file name for the downloaded pictures")
-    savloc.add_argument("--save-location",
+    parser.add_argument('-o','--output',"--save-file",
 			action = 'store',
+			default = '~/.background_getter/@',
 			type = str,
-			default = '~/.background_getter',
-			metavar = "FOLDER",
-			help = "the location where the downloaded file will be saved.")
-    savloc.add_argument("--save-file",
-			action = 'store',
-			default = '@',
-			type = str,
+			dest = 'save_file',
 			metavar = 'NAME',
-			help = "the name by which you want the downloaded file to be saved under. note all occurances of '@' are replaced by the reddit post id number of the reddit submission, this will be unique to each file. if you do not use @ at all in the name be sure that this is set to overwrite already saved files")
+			help = "the file by which you want the downloaded file to be saved under. note all occurances of '@' are replaced by the reddit post id number of the reddit submission, this will be unique to each file. if you do not use @ at all in the name be sure that this is set to overwrite already saved files")
     ovrwrt = parser.add_mutually_exclusive_group()
     ovrwrt.add_argument('--no-overwrite', action = 'store_false',
 			help = "do not overwrite any preexisting image files if the name is the same, this is enabled by default",
