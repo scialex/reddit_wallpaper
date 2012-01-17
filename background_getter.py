@@ -32,7 +32,7 @@ import gconf
 import imagefacts
 import json
 import os
-import exceptions
+import _exceptions
 from urllib2 import urlopen, HTTPError
 from config import *
 from loggers import DEBUG, INFO, NOTICE, WARNING, ERROR, CRITICAL, ALERT, EMERGENCY
@@ -67,7 +67,7 @@ def write_file(conf, url, save_name):
     if conf.overwrite or not os.access(save_name, os.F_OK):
         if not os.access(os.path.dirname(save_name), os.W_OK):
             conf.logger(ERROR, "The location {0} is not writable by this process".format(save_name))
-            raise exceptions.Failed("Unwritable save location")
+            raise _exceptions.Failed("Unwritable save location")
 
         conf.logger(INFO, "saving to {0}".format(save_name))
         with open(save_name, 'wb') as f:
@@ -139,7 +139,7 @@ def select_image(conf, data):
 	    except HTTPError as h:
 		conf.logger(WARNING, "an HTTPError was caught, reason given was {0}. skipping this link".format(str(h)))
 		continue
-	    except exceptions.Unsuccessful:
+	    except _exceptions.Unsuccessful:
 		conf.logger(DEBUG, "flickr did not have any link that was the right size")
 		continue
         elif child['data']['url'].split('.')[-1] in conf.picture_endings:
@@ -176,7 +176,7 @@ def select_image(conf, data):
             conf.logger(INFO, 'found {0}, link was not direct'.format(url))
             return url, child['data']['id']
     conf.logger(WARNING, "none of the possibilities could be used")
-    raise exceptions.Failed("could not get a suitable url")
+    raise _exceptions.Failed("could not get a suitable url")
 
 def choose_flickr_size(conf, data):
     best = None
@@ -190,7 +190,7 @@ def choose_flickr_size(conf, data):
 	    best_size = (pic['width'], pic['height'])
 	    best = pic
     if best is None:
-	raise exceptions.Unsuccessful()
+	raise _exceptions.Unsuccessful()
     else:
 	conf.logger(DEBUG, 'chose size to be one labled {0}'.format(best['label']))
 	return best['source'].replace('\\','')
@@ -204,7 +204,7 @@ def set_as_background(conf, file_location):
         conf.logger(DEBUG, 'changed the background succsessfully')
     else:
         conf.logger(ERROR, 'was unable to change the background')
-        raise exceptions.Failed("could not set gconf key")
+        raise _exceptions.Failed("could not set gconf key")
     return
 
 def main():
@@ -212,10 +212,10 @@ def main():
     conf.logger(INFO, 'Starting change of wallpaper')
     try:
         start_update(conf)
-    except exceptions.Failed as f:
+    except _exceptions.Failed as f:
         conf.logger(WARNING,
                     'Failed to update wallpaper, reason was {0}'.format(f.args[0]))
-    except exceptions.Unsuccessful as u:
+    except _exceptions.Unsuccessful as u:
         conf.logger(INFO, "Did not change wallpaper")
     except HTTPError as h:
         conf.logger(ERROR, 
