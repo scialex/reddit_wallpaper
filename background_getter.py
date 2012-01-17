@@ -14,8 +14,10 @@
 # along with RBU.  If not, see <http://www.gnu.org/licenses/>.
 #
 #DONE add size min and max arguments
-#TODO redo get image data so above will work.
-#TODO make it work with command line arguments
+#DONE redo get image data so above will work.
+#DONE make it work with command line argumentsa
+#TODO make it work with more photo sites
+#TODO refactor out code for handling different websites
 #TODO make it work with a real config file
 #TODO add a copyright notice to it GPL3+ maybe...
 #TODO make better logging functionality, still with syslog just maybe also be able to tee it to stdout? IDK?
@@ -30,28 +32,16 @@ import gconf
 import imagefacts
 import json
 import os
+import exceptions
 from urllib2 import urlopen, HTTPError
 from config import *
-from loggers import *
+from loggers import DEBUG, INFO, NOTICE, WARNING, ERROR, CRITICAL, ALERT, EMERGENCY
 
 GCONF_KEY = '/desktop/gnome/background/picture_filename'#key to write new wallpaper to
-JSON_PAGE_FORMAT = 'http://www.reddit.com/r/{0}.json'#where the list of possible wallpapers is
-IMGUR_JSON_FORMAT = "http://api.imgur.com/2/image/{0}.json"#imgur api page
-FLICKR_JSON_FORMAT = 'http://api.flickr.com/services/rest/?method=flickr.photos.getSizes&api_key=eaf4581fb8d0655b0a314d13ab54ef46&photo_id={0}&format=json&nojsoncallback=1'
-
-class Failed(Exception):
-    """
-    This is used when there is a failure and it was not compleatly
-    unexpected but was totally fatal (i.e. no internet)
-    """
-    pass
-
-class Unsuccessful(Exception):
-    """
-    This is used when there is a failure but it is not fatal
-    """
-    pass
-
+JSON_PAGE_FORMAT = 'http://www.reddit.com/r/{0}.json'#{0} is the subreddits name. This is where the list of possible wallpapers is
+IMGUR_JSON_FORMAT = "http://api.imgur.com/2/image/{0}.json"#{0} is the imgur photo id hash
+FLICKR_JSON_FORMAT = 'http://api.flickr.com/services/rest/?method=flickr.photos.getSizes&api_key=eaf4581fb8d0655b0a314d13ab54ef46&photo_id={0}&format=json&nojsoncallback=1'#{0} is the flickr photo-id number
+DEVIANT_ART_JSON_FORMAT = 'http://backend.deviantart.com/oembed?url={0}'
 
 def start_update(conf):
     """Updates the background image using the configuration stored in conf"""
@@ -77,7 +67,7 @@ def write_file(conf, url, save_name):
     if conf.overwrite or not os.access(save_name, os.F_OK):
         if not os.access(os.path.dirname(save_name), os.W_OK):
             conf.logger(ERROR, "The location {0} is not writable by this process".format(save_name))
-            raise Failed("Unwritable save location")
+            raise exceptions.Failed("Unwritable save location")
 
         conf.logger(INFO, "saving to {0}".format(save_name))
         with open(save_name, 'wb') as f:
@@ -149,7 +139,7 @@ def select_image(conf, data):
 	    except HTTPError as h:
 		conf.logger(WARNING, "an HTTPError was caught, reason given was {0}. skipping this link".format(str(h)))
 		continue
-	    except Unsuccessful:
+	    except exceptions.Unsuccessful:
 		conf.logger(DEBUG, "flickr did not have any link that was the right size")
 		continue
         elif child['data']['url'].split('.')[-1] in conf.picture_endings:
@@ -186,7 +176,7 @@ def select_image(conf, data):
             conf.logger(INFO, 'found {0}, link was not direct'.format(url))
             return url, child['data']['id']
     conf.logger(WARNING, "none of the possibilities could be used")
-    raise Failed("could not get a suitable url")
+    raise exceptions.Failed("could not get a suitable url")
 
 def choose_flickr_size(conf, data):
     best = None
@@ -200,7 +190,7 @@ def choose_flickr_size(conf, data):
 	    best_size = (pic['width'], pic['height'])
 	    best = pic
     if best is None:
-	raise Unsuccessful()
+	raise exceptions.Unsuccessful()
     else:
 	conf.logger(DEBUG, 'chose size to be one labled {0}'.format(best['label']))
 	return best['source'].replace('\\','')
@@ -214,7 +204,7 @@ def set_as_background(conf, file_location):
         conf.logger(DEBUG, 'changed the background succsessfully')
     else:
         conf.logger(ERROR, 'was unable to change the background')
-        raise Failed("could not set gconf key")
+        raise exceptions.Failed("could not set gconf key")
     return
 
 def main():
@@ -222,10 +212,10 @@ def main():
     conf.logger(INFO, 'Starting change of wallpaper')
     try:
         start_update(conf)
-    except Failed as f:
+    except exceptions.Failed as f:
         conf.logger(WARNING,
                     'Failed to update wallpaper, reason was {0}'.format(f.args[0]))
-    except Unsuccessful as u:
+    except exceptions.Unsuccessful as u:
         conf.logger(INFO, "Did not change wallpaper")
     except HTTPError as h:
         conf.logger(ERROR, 
