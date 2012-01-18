@@ -2,8 +2,8 @@
 #
 # This file is part of Reddit background updater (RBU).
 #
-if __package__ == None:
-    __package__ = 'reddit_wallpaper.websites.decorators'
+#if __package__ == None:
+#    __package__ = 'reddit_wallpaper.websites.decorators'
     
 import re
 from .._exceptions import Unsuitable
@@ -21,7 +21,7 @@ def requires_runtime_checking(check_func):
 		func(conf, child)
 	    else:
 		raise Unsuitable()
-	out._runtime_check == True
+	out._runtime_check = True
 	out.__doc__ = func.__doc__
 	if hasattr(func, 'acceptable'):
 	    out.acceptable = func.acceptable
