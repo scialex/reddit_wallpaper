@@ -7,7 +7,7 @@ import imagefacts
 import json
 from urllib2 import urlopen, HTTPError
 from . import check_size
-from .exceptions import Unsuitable
+from .._exceptions import Unsuitable
 from ..loggers import DEBUG, INFO, NOTICE, WARNING, ERROR, CRITICAL, ALERT, EMERGENCY
 from .decorators import *
 
