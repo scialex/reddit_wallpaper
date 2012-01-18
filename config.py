@@ -76,6 +76,11 @@ def parse_cmd_line(nspace = argparse.Namespace()):
     ovrwrt.add_argument('--overwrite', action = 'store_true', 
 			help = "redownload and overwrite any files bearing the same name as the one being downloaded, this is disabled by default",
 			dest = "overwrite")
+    parser.add_argument("--endings", type = str,
+			action = 'store',
+			default = ['png', 'jpg', 'jpeg', 'gif'],
+			nargs = '+',
+			help = "the file type endings to accept for download")
     size = parser.add_argument_group("Size limits",
 				     "set the size limit for the images to be downloaded. Each value must be either a positive non-zero number or none if there is no limit for that variable")
     def n_or_none(s):
@@ -90,11 +95,6 @@ def parse_cmd_line(nspace = argparse.Namespace()):
 	except Exception:
 	    msg = "{0} is not a valid input. The input shoudl either be a positive non-zero number or none".format(s)
 	    raise argparse.ArgumentTypeError(msg)
-    parser.add_argument("--endings", type = str,
-			action = 'store',
-			default = ['png', 'jpg', 'jpeg', 'gif'],
-			nargs = '+',
-			help = "the file type endings to accept for download")
     size.add_argument("--min",
 		      type = n_or_none,
 		      nargs = 2,
@@ -124,9 +124,8 @@ def parse_cmd_line(nspace = argparse.Namespace()):
 			metavar = 'number',
 			dest = 'num_tries',
 			help = "this specifies the number of images to check before giving up on finding a good match. if the value is 'none' it will never give up trying to find an image it can use")
-    sorter = parser.add_argument_group('Sort Type',
-				       "Select the section of the subreddit to use for sorting") 
-    sorttype = sorter.add_mutually_exclusive_group()
+    sorttype = parser.add_argument_group('Sort Type',
+				         "Select the section of the subreddit to use for sorting. NB if more than one of these switches are present the result is undefined.") 
     sorttype.add_argument('--hot', action = 'store_const',
 			  const = '', 
 			  dest = 'sort_type',
@@ -144,26 +143,22 @@ def parse_cmd_line(nspace = argparse.Namespace()):
 			  const = 'top',
 			  dest = 'sort_type',
 			  help = "Use the 'Top' section of the subreddit")
-    flickr_options = parser.add_argument_group("Flickr options",
-					       'Options relating to the handling of images from flickr.com')
-    respect_flickr = flickr_options.add_mutually_exclusive_group()
-    respect_flickr.add_argument('--ignore-flickr-download-flag',
-				 action = 'store_const',
-				 dest = 'respect_flickr_nodownload',
+    flickr_dl = parser.add_mutually_exclusive_group()
+    flickr_dl.add_argument('--respect-flickr-download-flag',
+				 action = 'store_true',
 				 default = True,
-				 const = False,
-				 help = "Ignore the no download flag on images stored on flikr, downloading them even if the poster has disabled downloads")
-    respect_flickr.add_argument('--respect-flickr-download-flag',
-				 action = 'store_const',
-				 const = True,
 				 dest = 'respect_flickr_nodownload',
 				 help = "respect the wishes of the poster of images hosted on Flickr, only downloading them if the poster has enabled it, This is activated by default.")
+    flickr_dl.add_argument('--ignore-flickr-download-flag',
+				 action = 'store_false',
+				 dest = 'respect_flickr_nodownload',
+				 help = "Ignore the no download flag on images stored on flikr, downloading them even if the poster has disabled downloads.")
+
     parser.add_argument('--config', action = 'store',
 		        nargs = 1,
 			dest = 'cfg',
 			help = 'use the given config file instead of the default ones') 
-    printers = parser.add_argument_group("Debug info", "these control how much information is printed onto the screen and into the logs")
-    prnts = printers.add_mutually_exclusive_group()
+    prnts = parser.add_argument_group("Debug info", "these control how much information is printed onto the screen and into the logs. NB if more than one of these switches is present the result is undefined")
     prnts.add_argument('--debug', action = 'store_const',
 		       default = DEFAULT_LOG_LEVEL,
 		       dest = 'logger',
