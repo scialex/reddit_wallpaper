@@ -22,7 +22,7 @@ from collections import namedtuple
 
 DEFAULT_LOG_LEVEL = 'debug'#change later
 
-CONFIG_LOC = ['/etc/reddit_wallpaper','~/.reddit_wallpaper','./reddit_wallpaper']
+CONFIG_LOC = ['/etc/reddit_wallpaper', '~/.reddit_wallpaper', './reddit_wallpaper']
 
 configuration = namedtuple("configuration",
                            ["overwrite",
@@ -36,14 +36,18 @@ configuration = namedtuple("configuration",
 			    "logger"])
 
 size_limit = namedtuple("size_limit",
-			["min_x","min_y",
-			 "max_x","max_y"])
+			["min_x", "min_y",
+			 "max_x", "max_y"])
 
 _loggers = {'quiet'  : quiet,
 	    'debug'  : debug,
 	    'normal' : normal}
 
 def get_config():
+    """
+    gets the configuration that this program is running with using the command line
+    argument and (eventually) the config files.
+    """
     return convert_to_configuration(parse_cmd_line())
 
 def convert_to_configuration(nspace):
@@ -61,7 +65,7 @@ def convert_to_configuration(nspace):
 
 def parse_cmd_line(nspace = argparse.Namespace()):
     parser = argparse.ArgumentParser(description = "this will retrieve a background from some subreddit and set its top image link as the background")
-    parser.add_argument('-o','--output',"--save-file",
+    parser.add_argument('-o', '--output',"--save-file",
 			action = 'store',
 			default = '~/.background_getter/@',
 			type = str,

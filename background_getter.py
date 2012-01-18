@@ -35,15 +35,11 @@ import json
 import os
 from . import _exceptions
 from urllib2 import urlopen, HTTPError
-from .config import *
 from .loggers import DEBUG, INFO, NOTICE, WARNING, ERROR, CRITICAL, ALERT, EMERGENCY
 from .websites import select_image
 
 GCONF_KEY = '/desktop/gnome/background/picture_filename'#key to write new wallpaper to
 JSON_PAGE_FORMAT = 'http://www.reddit.com/r/{0}.json'#{0} is the subreddits name. This is where the list of possible wallpapers is
-IMGUR_JSON_FORMAT = "http://api.imgur.com/2/image/{0}.json"#{0} is the imgur photo id hash
-FLICKR_JSON_FORMAT = 'http://api.flickr.com/services/rest/?method=flickr.photos.getSizes&api_key=eaf4581fb8d0655b0a314d13ab54ef46&photo_id={0}&format=json&nojsoncallback=1'#{0} is the flickr photo-id number
-DEVIANT_ART_JSON_FORMAT = 'http://backend.deviantart.com/oembed?url={0}'
 
 def start_update(conf):
     """Updates the background image using the configuration stored in conf"""
@@ -92,24 +88,4 @@ def set_as_background(conf, file_location):
         raise _exceptions.Failed("could not set gconf key")
     return
 
-def main():
-    conf = get_config()
-    conf.logger(INFO, 'Starting change of wallpaper')
-    try:
-        start_update(conf)
-    except _exceptions.Failed as f:
-        conf.logger(WARNING,
-                    'Failed to update wallpaper, reason was {0}'.format(f.args[0]))
-    except _exceptions.Unsuccessful as u:
-        conf.logger(INFO, "Did not change wallpaper")
-    except HTTPError as h:
-        conf.logger(ERROR, 
-                    "An HTTPError was thrown, reason given was {0}".format(str(h)))
-    except Exception as e:
-        conf.logger(ERROR,
-                    'an uncaught exception was thrown, reason given was {0}, type was given as {1}, args were {2}'.format(e.args[0], type(e), e.args))
-    else:
-        conf.logger(INFO, 'all done changing wallpaper')
 
-if __name__ == '__main__':
-    main()
