@@ -17,7 +17,7 @@
 import os
 import argparse
 import sys
-from loggers import quiet, debug, normal
+from .loggers import quiet, debug, normal
 from collections import namedtuple
 
 DEFAULT_LOG_LEVEL = 'debug'#change later

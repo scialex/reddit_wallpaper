@@ -27,15 +27,16 @@
 #TODO integrate it with pycrontab and windows scheduler so can have scheduled things
 #TODO package it
 #TODO profit
-
+if __name__ == "__main__" and __package__ is None:
+    __package__ = "reddit_wallpaper.background_getter"
 import gconf
 import imagefacts
 import json
 import os
-import _exceptions
+from . import _exceptions
 from urllib2 import urlopen, HTTPError
-from config import *
-from loggers import DEBUG, INFO, NOTICE, WARNING, ERROR, CRITICAL, ALERT, EMERGENCY
+from .config import *
+from .loggers import DEBUG, INFO, NOTICE, WARNING, ERROR, CRITICAL, ALERT, EMERGENCY
 
 GCONF_KEY = '/desktop/gnome/background/picture_filename'#key to write new wallpaper to
 JSON_PAGE_FORMAT = 'http://www.reddit.com/r/{0}.json'#{0} is the subreddits name. This is where the list of possible wallpapers is
