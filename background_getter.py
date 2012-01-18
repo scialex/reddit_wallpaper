@@ -57,7 +57,7 @@ def start_update(conf, handlers = default_handlers):
     imageURL, post_id = select_image(conf, json_data, handlers)
     conf.logger(INFO, "Postid for the image is {0}".format(post_id))
     save_name = '.'.join((conf.save_file.replace('@', post_id),# <- the filename
-		          imageURL.split('.')[-1])) # <- the filetype
+                          imageURL.split('.')[-1])) # <- the filetype
     write_file(conf, imageURL, save_name)
     set_as_background(conf, save_name)
     return
@@ -94,5 +94,3 @@ def set_as_background(conf, file_location):
         conf.logger(ERROR, 'was unable to change the background')
         raise _exceptions.Failed("could not set gconf key")
     return
-
-

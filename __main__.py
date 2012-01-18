@@ -1,4 +1,4 @@
-#!/usr/bin/python 
+#!/usr/bin/python
 
 
 from reddit_wallpaper import _exceptions
@@ -17,7 +17,7 @@ def main():
     except _exceptions.Unsuccessful as u:
         conf.logger(INFO, "Did not change wallpaper")
     except HTTPError as h:
-        conf.logger(ERROR, 
+        conf.logger(ERROR,
                     "An HTTPError was thrown, reason given was {0}".format(str(h)))
     except Exception as e:
         conf.logger(ERROR,

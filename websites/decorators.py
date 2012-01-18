@@ -13,7 +13,7 @@
 # along with RBU.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-    
+
 import re
 from .._exceptions import Unsuitable
 
@@ -27,63 +27,63 @@ def requires_runtime_checking(check_func):
     and false if it cannot.
     """
     def wraper(func):
-	def out(conf, child):
-	    if check_func(conf, child):
-		func(conf, child)
-	    else:
-		raise Unsuitable()
-	out._runtime_check = True
-	out.__doc__ = func.__doc__
-	if hasattr(func, 'acceptable'):
-	    out.acceptable = func.acceptable
-	    return out
-	else:
-	    out.acceptable = lambda a: True
-	    return out
+        def out(conf, child):
+            if check_func(conf, child):
+                func(conf, child)
+            else:
+                raise Unsuitable()
+        out._runtime_check = True
+        out.__doc__ = func.__doc__
+        if hasattr(func, 'acceptable'):
+            out.acceptable = func.acceptable
+            return out
+        else:
+            out.acceptable = lambda a: True
+            return out
     return wraper
 
 def requires_URL(url):
     """
-    a decorator that is given either a regex or a string and 
+    a decorator that is given either a regex or a string and
     puts the is_suitable attribute on the given function.
-    this attribute is a function that will return true when the 
-    the url attribute on the reddit post matches all of the 
+    this attribute is a function that will return true when the
+    the url attribute on the reddit post matches all of the
     domains set to be required.
     """
     if isinstance(url, _regex_type):
-	match = lambda dmn: url.search(dmn['data']['url']) is not None
+        match = lambda dmn: url.search(dmn['data']['url']) is not None
     else:
-	match = lambda dmn: url == dmn['data']['url']
+        match = lambda dmn: url == dmn['data']['url']
     def dec(func):
-	if hasattr(func, 'acceptable'):
-	    other_dmn = func.acceptable
+        if hasattr(func, 'acceptable'):
+            other_dmn = func.acceptable
 #that its still here means that it already has a domain requirement
-	    func.acceptable = lambda child: match(child) and other_dmn(child)
-	else:
-	    func.is_suitable = match
-	return func	
-    return dec 
+            func.acceptable = lambda child: match(child) and other_dmn(child)
+        else:
+            func.is_suitable = match
+        return func
+    return dec
 
 def requires_domain(domain):
     """
-    a decorator that is given either a regex or a string and 
+    a decorator that is given either a regex or a string and
     puts the is_suitable attribute on the given function.
-    this attribute is a function that will return true when the 
-    the domain attribute on the reddit post matches all of the 
+    this attribute is a function that will return true when the
+    the domain attribute on the reddit post matches all of the
     domains set to be required.
     """
     if isinstance(domain, _regex_type):
-	match = lambda child: domain.search(child['data']['domain']) is not None
+        match = lambda child: domain.search(child['data']['domain']) is not None
     else:
-	match = lambda child: domain == child['data']['domain']
+        match = lambda child: domain == child['data']['domain']
     def dec(func):
-	if hasattr(func, 'acceptable'):
-	    other_dmn = func.acceptable
+        if hasattr(func, 'acceptable'):
+            other_dmn = func.acceptable
 #that its still here means that it already has a domain requirement
-	    func.acceptable = lambda dmn: match(dmn) and other_dmn(dmn)
-	else:
-	    func.acceptable = match
-	return func	 
+            func.acceptable = lambda dmn: match(dmn) and other_dmn(dmn)
+        else:
+            func.acceptable = match
+        return func
     return dec
 
 def priority(num):
@@ -92,8 +92,6 @@ def priority(num):
     has that priority.
     """
     def wrapper(func):
-	func.priority = num
-	return func
+        func.priority = num
+        return func
     return wrapper
-
-
