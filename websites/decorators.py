@@ -8,6 +8,8 @@
 import re
 from .._exceptions import Unsuitable
 
+_regex_type = type(re.compile(''))
+
 def requires_runtime_checking(check_func):
     """
     Use this to decorate functions where the function needs information it only gets at runtime
@@ -39,7 +41,7 @@ def requires_URL(url):
     the url attribute on the reddit post matches all of the 
     domains set to be required.
     """
-    if isinstance(url, re.RegexObject):
+    if isinstance(url, _regex_type):
 	match = lambda dmn: url.search(dmn['data']['url']) is not None
     else:
 	match = lambda dmn: url == dmn['data']['url']
@@ -61,7 +63,7 @@ def requires_domain(domain):
     the domain attribute on the reddit post matches all of the 
     domains set to be required.
     """
-    if isinstance(domain, re.RegexObject):
+    if isinstance(domain, _regex_type):
 	match = lambda child: domain.search(child['data']['domain']) is not None
     else:
 	match = lambda child: domain == child['data']['domain']

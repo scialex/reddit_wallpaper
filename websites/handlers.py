@@ -6,7 +6,7 @@ import re
 import imagefacts
 import json
 from urllib2 import urlopen, HTTPError
-from . import check_size
+from .utils import check_size
 from .._exceptions import Unsuitable
 from ..loggers import DEBUG, INFO, NOTICE, WARNING, ERROR, CRITICAL, ALERT, EMERGENCY
 from .decorators import *
@@ -15,17 +15,18 @@ IMGUR_JSON_FORMAT = "http://api.imgur.com/2/image/{0}.json"#{0} is the imgur pho
 FLICKR_JSON_FORMAT = 'http://api.flickr.com/services/rest/?method=flickr.photos.getSizes&api_key=eaf4581fb8d0655b0a314d13ab54ef46&photo_id={0}&format=json&nojsoncallback=1'#{0} is the flickr photo-id number
 DEVIANT_ART_JSON_FORMAT = 'http://backend.deviantart.com/oembed?url={0}'#{0} is the url of the deviantart page
 
-def _direct_link_check(endings):
+def _direct_link_check(conf, child):
     """
     takes in the list of picture endings and creates a regex that matches if
     the url ends with any of them. returns the search function of this regex
     object
     """
-    re.compile('^https?.*\.({0})$'.format('|'.join(endings)))
-    return re.search
+    re.search('^https?.*\.({0})$'.format('|'.join(conf.picture_endings)),
+              child['data']['url'])
+
 
 @priority(100)
-@requires_runtime_checking(_direct_link_check(conf.picture_endings))
+@requires_runtime_checking(_direct_link_check)
 def direct_link_handler(conf, child):
     """
     this function will try to figure out the size of a direct image link.
@@ -39,11 +40,11 @@ def direct_link_handler(conf, child):
     except Exception as e:
 	conf.logger(WARNING,
 		    "something happened while trying to retrieve the image at {0} in order to determine its size. type of exception was {1} and reason given was {2}".format(url, type(e), e.args))
-	raise excpetions.Unsuitable() 
+	raise Unsuitable() 
     if not check_size(conf, size):
 	conf.logger(DEBUG,
 		    "the image at {0} was not the right size".format(url))
-	raise excpetions.Unsuitable() 
+	raise Unsuitable() 
     conf.logger(INFO, 'found {0}, link was direct to a non_imgur site'.format(url))
     return url
 
@@ -61,7 +62,7 @@ def i_imgur_handler(conf, child):
 	    conf.logger(DEBUG,
 			"was able to retrieve the image metadata from imgur for image {0}".format(url))
 	except HTTPError:
-	    raise excpetions.Unsuitable() 
+	    raise Unsuitable() 
 	if not check_size(conf,
 			  (data["image"]["image"]["width"],
 			   data["image"]["image"]["height"])):
