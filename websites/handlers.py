@@ -134,7 +134,7 @@ def imgur_handler(conf, child):
 @requires_domain(re.compile("^.*\.?deviantart\.com$"))
 def deviantart_handler(conf, child):
     url = child['data']['url']
-    try: data = json.loads(urlopen(DEVIANT_ART_FORMAT.format(url)).read())
+    try: data = json.loads(urlopen(DEVIANT_ART_JSON_FORMAT.format(url)).read())
     except HTTPError as h:
         conf.logger(WARNING, "recieved an HTTPError when tried to use oembeded api to query deviantart url {0}. response was: {1}.".format(url, h))
         raise Unsuitable()
