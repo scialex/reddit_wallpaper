@@ -42,13 +42,13 @@ def select_image(conf, data, handlers = default_handlers):
 	if not hasattr(b, 'priority'): b.priority = 100
 	if a.priority == b.priority:
 	    if hasattr(a, '_runtime_check'):
-		return -1 # we want the runtime check to be last
+		return 1 # we want the runtime check to be last
 	    else:
-		return 1
+		return -1
 	elif a.priority > b.priority:
-	    return 1
-	else:
 	    return -1
+	else:
+	    return 1
     srt_handlers = sorted(handlers, _handler_cmp)
     for child in data[0:conf.num_tries]:
 	conf.logger(INFO, "trying reddit post {0}, is a link to {1}.".format(child['data']['id'], 
