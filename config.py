@@ -13,7 +13,12 @@
 # You should have received a copy of the GNU General Public License
 # along with RBU.  If not, see <http://www.gnu.org/licenses/>.
 #
-#this file will parse the config files and the cli input for the application
+
+"""
+This file is responsible for parsing the input from the cli and from any config
+files.
+"""
+
 import os
 import argparse
 import sys
@@ -63,7 +68,11 @@ def convert_to_configuration(nspace):
 			 respect_flickr_nodownload = nspace.respect_flickr_nodownload,
 			 logger = _loggers[nspace.logger])
 
-def parse_cmd_line(nspace = argparse.Namespace()):
+def parse_cmd_line(nspace = None):
+    if nspace is None: nspace = argparse.Namespace()
+    return get_parser().parse_args(namespace = nspace)
+
+def get_parser():
     parser = argparse.ArgumentParser(description = "this will retrieve a background from some subreddit and set its top image link as the background")
     parser.add_argument('-o', '--output',"--save-file",
 			action = 'store',
@@ -172,7 +181,7 @@ def parse_cmd_line(nspace = argparse.Namespace()):
 		       dest = 'logger',
 		       const = 'quiet',
 		       help = "do not print out status info")
-    return parser.parse_args(namespace = nspace)
+    return parser
 
 def parse_config_files(files = CONFIG_LOC):
     pass
