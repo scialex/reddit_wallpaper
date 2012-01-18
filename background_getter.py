@@ -27,6 +27,12 @@
 #TODO integrate it with pycrontab and windows scheduler so can have scheduled things
 #TODO package it
 #TODO profit
+
+"""
+This module facilitates the actual calling of all the others,
+it is the glue that holds everything together
+"""
+
 if __name__ == "__main__" and __package__ is None:
     __package__ = "reddit_wallpaper.background_getter"
 import gconf
@@ -37,17 +43,18 @@ from . import _exceptions
 from urllib2 import urlopen, HTTPError
 from .loggers import DEBUG, INFO, NOTICE, WARNING, ERROR, CRITICAL, ALERT, EMERGENCY
 from .websites import select_image
+from .websites.handlers import default_handlers
 
 GCONF_KEY = '/desktop/gnome/background/picture_filename'#key to write new wallpaper to
 JSON_PAGE_FORMAT = 'http://www.reddit.com/r/{0}.json'#{0} is the subreddits name. This is where the list of possible wallpapers is
 
-def start_update(conf):
+def start_update(conf, handlers = default_handlers):
     """Updates the background image using the configuration stored in conf"""
     json_data = json.loads(urlopen(
                    JSON_PAGE_FORMAT.format(conf.subreddit)).read())["data"]["children"]
     conf.logger(DEBUG,
                 "retrieved json page from reddit successfully")
-    imageURL, post_id = select_image(conf, json_data)
+    imageURL, post_id = select_image(conf, json_data, handlers)
     conf.logger(INFO, "Postid for the image is {0}".format(post_id))
     save_name = '.'.join((conf.save_file.replace('@', post_id),# <- the filename
 		          imageURL.split('.')[-1])) # <- the filetype
