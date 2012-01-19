@@ -5,6 +5,7 @@ from reddit_wallpaper import _exceptions
 from reddit_wallpaper.background_getter import start_update
 from reddit_wallpaper.config import get_config
 from reddit_wallpaper.loggers import DEBUG, INFO, NOTICE, WARNING, ERROR, CRITICAL, ALERT, EMERGENCY
+from urllib2 import HTTPError
 
 def main():
     conf = get_config()
