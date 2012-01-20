@@ -6,10 +6,12 @@ This program requires that python-argparse is installed or the default python ve
 
 To run
 
-0) clone this repository into some folder
+0) clone this repository
 
-1) call: python /path/to/folder/you/cloned [options] [subreddit1 [subreddit2 ...]]
-  (you might want to make this into a small script and put it in your ~/bin folder or another thing on your path.
+1) copy its contents into a folder called reddit_wallpaper somewhere on your path
+
+2) call: python reddit_wallpaper [options] [subreddit1 [subreddit2 ...]]
+  (you might want to make this into a small script and put it in your ~/bin folder or another thing on your path.)
 
 This program has only been tested on Ubuntu Linux 10.04.3 but I have reason to believe it will work on any system which uses gconf to store the background file name.
 
