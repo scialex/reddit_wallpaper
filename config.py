@@ -29,6 +29,9 @@ DEFAULT_LOG_LEVEL = 'debug'#change later
 
 CONFIG_LOC = ['/etc/reddit_wallpaper', '~/.reddit_wallpaper', './reddit_wallpaper']
 
+_DEFAULT_PICTURE_TYPES = ['png', 'jpg', 'jpeg', 
+                          'gif', 'svg', 'bmp']
+
 configuration = namedtuple("configuration",
                            ["overwrite",
                             "num_tries",
@@ -91,7 +94,7 @@ def get_parser():
                         dest = "overwrite")
     parser.add_argument("--endings", type = str,
                         action = 'store',
-                        default = ['png', 'jpg', 'jpeg', 'gif'],
+                        default = _DEFAULT_PICTURE_TYPES, 
                         nargs = '+',
                         help = "the file type endings to accept for download")
     size = parser.add_argument_group("Size limits",
