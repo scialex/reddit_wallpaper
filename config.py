@@ -189,7 +189,3 @@ def get_parser():
 def parse_config_files(files = CONFIG_LOC):
     pass
 
-try:
-    print str(convert_to_configuration(parse_cmd_line())).replace(',',',\n             ')
-except Exception:
-    pass
