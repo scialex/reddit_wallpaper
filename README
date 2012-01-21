@@ -15,6 +15,3 @@ To run
 
 This program has only been tested on Ubuntu Linux 10.04.3 but I have reason to believe it will work on any system which uses gconf to store the background file name.
 
-if you download this and want to use it place the contents in a folder called reddit_wallpaper somewhere on your python path.
-
-
