@@ -39,6 +39,8 @@ LEVELS = {DEBUG     : 'debug',
           ALERT     : 'alert',
           EMERGENCY : 'emergency'}
 
+LOG_NAME = 'reddit-wallpaper'
+
 def printer_gen(name, min_lvl):
     """
     Takes in a name and a syslog logging leven and returns a function that
@@ -75,6 +77,6 @@ def normal_gen(name, min_lvl):
         pl(lvl, msg)
     return bth
 
-quiet  = quiet_gen(sys.argv[0],  WARNING)
-normal = normal_gen(sys.argv[0], WARNING)
-debug  = normal_gen(sys.argv[0], DEBUG)
+quiet  = quiet_gen(LOG_NAME,  WARNING)
+normal = normal_gen(LOG_NAME, WARNING)
+debug  = normal_gen(LOG_NAME, DEBUG)
