@@ -41,12 +41,12 @@ from .websites import select_image
 from .websites.handlers import default_handlers
 
 GCONF_KEY = '/desktop/gnome/background/picture_filename'#key to write new wallpaper to
-JSON_PAGE_FORMAT = 'http://www.reddit.com/r/{0}.json'#{0} is the subreddits name. This is where the list of possible wallpapers is
+JSON_PAGE_FORMAT = 'http://www.reddit.com/r/{0}.json{1}'#{0} is the subreddits name. This is where the list of possible wallpapers is
 
 def start_update(conf, handlers = default_handlers):
     """Updates the background image using the configuration stored in conf"""
     json_data = json.loads(urlopen(
-                   JSON_PAGE_FORMAT.format(conf.subreddit)).read())["data"]["children"]
+                   JSON_PAGE_FORMAT.format(conf.subreddit, conf.request_args)).read())["data"]["children"]
     conf.logger(DEBUG,
                 "retrieved json page from reddit successfully")
     imageURL, post_id = select_image(conf, json_data, handlers)
