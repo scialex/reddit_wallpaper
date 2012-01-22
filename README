@@ -4,7 +4,9 @@ This program requires that the Python Imageing Library (PIL) is installed.
 
 This program requires that python-argparse is installed or the default python version is 2.7+
 
-This program requires python-setuptools to install an executable to your path so you do not need to write one yourself
+This program requires python-setuptools to install an executable to your path so you do not need to write one yourself although you can just use distutils
+
+you need to make sure that the download location exists before running. (By default ~/.background_getter)
 
 To run
 
