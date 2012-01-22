@@ -1,6 +1,5 @@
 #!/usr/bin/python
 
-
 from reddit_wallpaper import _exceptions
 from reddit_wallpaper.background_getter import start_update
 from reddit_wallpaper.config import get_config
