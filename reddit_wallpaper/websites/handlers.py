@@ -20,8 +20,8 @@ def _direct_link_check(conf, child):
     the url ends with any of them. returns the search function of this regex
     object
     """
-    re.search('^https?.*\.({0})$'.format('|'.join(conf.picture_endings)),
-              child['data']['url'])
+    return re.search('^https?.*\.({0})$'.format('|'.join(conf.picture_endings)),
+                     child['data']['url']) is not None
 
 
 @priority(100)

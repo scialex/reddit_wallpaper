@@ -29,7 +29,7 @@ def requires_runtime_checking(check_func):
     def wraper(func):
         def out(conf, child):
             if check_func(conf, child):
-                func(conf, child)
+                return func(conf, child)
             else:
                 raise Unsuitable()
         out._runtime_check = True
