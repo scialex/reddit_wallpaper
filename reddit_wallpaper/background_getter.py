@@ -16,15 +16,12 @@
 #DONE add size min and max arguments
 #DONE redo get image data so above will work.
 #DONE make it work with command line argumentsa
-#TODO make it work with more photo sites
-#TODO refactor out code for handling different websites
+#DONE/TODO make it work with more photo sites
 #TODO make it work with a real config file
-#TODO add a copyright notice to it GPL3+ maybe...
 #TODO make better logging functionality, still with syslog just maybe also be able to tee it to stdout? IDK?
 #TODO factor out all site/OS specific stuff to other files. (i.e. gconf)
 #TODO make it work on windows and OSX
 #TODO give it a TK gui
-#TODO integrate it with pycrontab and windows scheduler so can have scheduled things
 #TODO package it
 #TODO profit
 
@@ -33,8 +30,6 @@ This module facilitates the actual calling of all the others,
 it is the glue that holds everything together
 """
 
-if __name__ == "__main__" and __package__ is None:
-    __package__ = "reddit_wallpaper.background_getter"
 import gconf
 import imagefacts
 import json
