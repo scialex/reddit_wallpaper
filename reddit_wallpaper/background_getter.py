@@ -48,7 +48,7 @@ def start_update(conf, handlers = default_handlers):
     json_data = json.loads(urlopen(
                    JSON_PAGE_FORMAT.format(conf.subreddit)).read())["data"]["children"]
     conf.logger(DEBUG,
-                "retrieved json page from reddit successfully")
+                "retrieved json page from subreddit {0} successfully".format(conf.subreddit))
     imageURL, post_id = select_image(conf, json_data, handlers)
     conf.logger(INFO, "Postid for the image is {0}".format(post_id))
     save_name = '.'.join((conf.save_file.replace('@', post_id),# <- the filename
