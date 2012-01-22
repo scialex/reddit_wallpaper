@@ -1,6 +1,10 @@
 #!/usr/bin/env python
 
-from setuptools import setup
+try:
+    from setuptools import setup
+except ImportError:
+    from distutils.core import setup
+
 
 setup(name = 'reddit_wallpaper',
       version = '0.4',
