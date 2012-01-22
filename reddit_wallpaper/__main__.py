@@ -1,5 +1,5 @@
 #!/usr/bin/python
 
-from reddit_wallpaper import main()
+from reddit_wallpaper import main
 
 main()
