@@ -12,5 +12,6 @@ setup(name = 'reddit_wallpaper',
       author = 'Alexander Light',
       packages = ['reddit_wallpaper', 'reddit_wallpaper.websites'],
       license = "GPL",
+      requires = ['PIL','argparse'],
       entry_points = dict(console_scripts=['reddit-wallpaper=reddit_wallpaper:main']))
 
