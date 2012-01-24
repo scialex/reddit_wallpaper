@@ -38,8 +38,6 @@ configuration = namedtuple("configuration",
                             "num_tries",
                             "save_file",
                             "picture_endings",
-                            "savable_endings",
-                            "default_ending",
                             "subreddit",
                             "allow_nsfw",
                             "size_limit",
@@ -177,7 +175,6 @@ def get_parser():
                                  action = 'store_false',
                                  dest = 'respect_flickr_nodownload',
                                  help = "Ignore the no download flag on images stored on flikr, downloading them even if the poster has disabled downloads.")
-
 #    parser.add_argument('--config', action = 'store',
 #                        nargs = 1,
 #                        dest = 'cfg',
