@@ -22,6 +22,7 @@ files.
 import os
 import argparse
 import sys
+from copy import deepcopy
 from .loggers import quiet, debug, normal
 from collections import namedtuple
 
@@ -37,6 +38,8 @@ configuration = namedtuple("configuration",
                             "num_tries",
                             "save_file",
                             "picture_endings",
+                            "savable_endings",
+                            "default_ending",
                             "subreddit",
                             "allow_nsfw",
                             "size_limit",
@@ -50,6 +53,18 @@ size_limit = namedtuple("size_limit",
 _loggers = {'quiet'  : quiet,
             'debug'  : debug,
             'normal' : normal}
+
+_DEFAULT_NSPACE = argparse.Namespace(overwrite  = False, # do not overwrite files
+                                     num_tries  = None,  # try all submissions the request gives you
+                                     save_file  = '~/.background_getter/@',
+                                     endings    = ['png', 'jpg', 'jpeg', 'gif', 'svg', 'bmp'],
+                                     subreddit  = ['wallpaper', 'wallpapers'],
+                                     sort_type  = '',
+                                     allow_nsfw = False,
+                                     min = [None, None],
+                                     max = [None, None],
+                                     logger = DEFAULT_LOG_LEVEL,
+                                     respect_flickr_nodownload = True)
 
 def get_config():
     """
@@ -69,17 +84,18 @@ def convert_to_configuration(nspace):
                          allow_nsfw = nspace.allow_nsfw,
                          size_limit = None if [None, None] == nspace.min == nspace.max else size_limit(*(nspace.min + nspace.max)),
                          respect_flickr_nodownload = nspace.respect_flickr_nodownload,
-                         logger = _loggers[nspace.logger])
+                         logger = _loggers[nspace.logger],
+                         savable_endings = None,
+                         default_ending = 'jpg')
 
 def parse_cmd_line(nspace = None):
-    if nspace is None: nspace = argparse.Namespace()
+    if nspace is None: nspace = deepcopy(_DEFAULT_NSPACE)
     return get_parser().parse_args(namespace = nspace)
 
 def get_parser():
     parser = argparse.ArgumentParser(description = "this will retrieve a background from some subreddit and set its top image link as the background")
     parser.add_argument('-o', '--output',"--save-file",
                         action = 'store',
-                        default = '~/.background_getter/@',
                         type = str,
                         dest = 'save_file',
                         metavar = 'NAME',
@@ -87,16 +103,14 @@ def get_parser():
     ovrwrt = parser.add_mutually_exclusive_group()
     ovrwrt.add_argument('--no-overwrite', action = 'store_false',
                         help = "do not overwrite any preexisting image files if the name is the same, this is enabled by default",
-                        dest = "overwrite",
-                        default = False)
+                        dest = "overwrite")
     ovrwrt.add_argument('--overwrite', action = 'store_true',
                         help = "redownload and overwrite any files bearing the same name as the one being downloaded, this is disabled by default",
                         dest = "overwrite")
     parser.add_argument("--endings", type = str,
                         action = 'store',
-                        default = _DEFAULT_PICTURE_TYPES, 
                         nargs = '+',
-                        help = "the file type endings to accept for download")
+                        help = "the file types to accept for download")
     size = parser.add_argument_group("Size limits",
                                      "set the size limit for the images to be downloaded. Each value must be either a positive non-zero number or none if there is no limit for that variable")
     def n_or_none(s):
@@ -115,16 +129,14 @@ def get_parser():
                       type = n_or_none,
                       nargs = 2,
                       metavar = ('MIN_X', 'MIN_Y'),
-                      default = [None, None],
                       help = "this specifices the minimum size of the image. Each argument must be either a positive non-zero number or the word 'none'")
     size.add_argument("--max",
                       type = n_or_none,
                       nargs = 2,
                       metavar = ("MAX_X", 'MAX_Y'),
-                      default = [None, None],
                       help = "this specifices the maximum size of the image. Each argument must be either a positive non-zero number or the word 'none'")
     parser.add_argument('subreddit', nargs = '*', type = str,
-                        default = ["wallpaper", "wallpapers"],
+                        default = argparse.SUPPRESS,
                         help = "the subreddits to check for images")
     nsfwallow = parser.add_mutually_exclusive_group()
     nsfwallow.add_argument("-N","--allow-nsfw", action = 'store_true',
@@ -132,11 +144,9 @@ def get_parser():
                            help = "allow nsfw content to be downloaded")
     nsfwallow.add_argument('-n','--no-nsfw', action = 'store_false',
                            dest = 'allow_nsfw',
-                           default = False,
                            help = "do not download any content marked nsfw")
     parser.add_argument('-t','--tries', type = n_or_none,
                         action = 'store',
-                        default = None,
                         metavar = 'number',
                         dest = 'num_tries',
                         help = "this specifies the number of images to check before giving up on finding a good match. if the value is 'none' it will never give up trying to find an image it can use")
@@ -145,7 +155,6 @@ def get_parser():
     sorttype.add_argument('--hot', action = 'store_const',
                           const = '',
                           dest = 'sort_type',
-                          default = '',
                           help = "The default. Use the 'What's Hot' section of the subreddit")
     sorttype.add_argument('--new', action = 'store_const',
                           const = 'new/?sort=new',
@@ -162,7 +171,6 @@ def get_parser():
     flickr_dl = parser.add_mutually_exclusive_group()
     flickr_dl.add_argument('--respect-flickr-download-flag',
                                  action = 'store_true',
-                                 default = True,
                                  dest = 'respect_flickr_nodownload',
                                  help = "respect the wishes of the poster of images hosted on Flickr, only downloading them if the poster has enabled it, This is activated by default.")
     flickr_dl.add_argument('--ignore-flickr-download-flag',
@@ -170,10 +178,10 @@ def get_parser():
                                  dest = 'respect_flickr_nodownload',
                                  help = "Ignore the no download flag on images stored on flikr, downloading them even if the poster has disabled downloads.")
 
-    parser.add_argument('--config', action = 'store',
-                        nargs = 1,
-                        dest = 'cfg',
-                        help = 'use the given config file instead of the default ones')
+#    parser.add_argument('--config', action = 'store',
+#                        nargs = 1,
+#                        dest = 'cfg',
+#                        help = 'use the given config file instead of the default ones')
     prnts = parser.add_argument_group("Debug info", "these control how much information is printed onto the screen and into the logs. NB if more than one of these switches is present the result is undefined")
     prnts.add_argument('--debug', action = 'store_const',
                        default = DEFAULT_LOG_LEVEL,
