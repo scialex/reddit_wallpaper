@@ -31,7 +31,6 @@ it is the glue that holds everything together
 """
 
 import gconf
-import imagefacts
 import json
 import os
 from . import _exceptions
