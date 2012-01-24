@@ -57,7 +57,7 @@ _loggers = {'quiet'  : quiet,
 _DEFAULT_NSPACE = argparse.Namespace(overwrite  = False, # do not overwrite files
                                      num_tries  = None,  # try all submissions the request gives you
                                      save_file  = '~/.background_getter/@',
-                                     endings    = ['png', 'jpg', 'jpeg', 'gif', 'svg', 'bmp'],
+                                     endings    = _DEFAULT_PICTURE_TYPES,
                                      subreddit  = ['wallpaper', 'wallpapers'],
                                      sort_type  = '',
                                      allow_nsfw = False,
