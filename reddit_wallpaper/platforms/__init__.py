@@ -13,7 +13,14 @@
 # along with RBU.  If not, see <http://www.gnu.org/licenses/>.
 #
 
+"""
+This module contains the code to set the wallpaper on different platforms
+Only import this module it will load the appropriate submodule automatically
+NB The calling of the provided set_as_background method may have side effects
+"""
+
 import sys
+from .._exceptions import Failed
 
 set_as_background = lambda a, b: None
 
@@ -23,8 +30,10 @@ if sys.platform.startswith('linux'):
 elif sys.platform.startswith('win32'):
     from .windows import set_as_background as sab
     set_as_background = sab
-elif sys.platform.startswith('darwin'):
-    from .macosx import set_as_background as sab
-    set_as_background = sab
+#elif sys.platform.startswith('darwin'):
+#    from .macosx import set_as_background as sab
+#    set_as_background = sab
+else:
+    raise Failed("There was no way to set the wallpaper for this platform")
 
 __all__ = [set_as_background]

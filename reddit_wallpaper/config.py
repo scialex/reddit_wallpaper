@@ -82,9 +82,7 @@ def convert_to_configuration(nspace):
                          allow_nsfw = nspace.allow_nsfw,
                          size_limit = None if [None, None] == nspace.min == nspace.max else size_limit(*(nspace.min + nspace.max)),
                          respect_flickr_nodownload = nspace.respect_flickr_nodownload,
-                         logger = _loggers[nspace.logger],
-                         savable_endings = None,
-                         default_ending = 'jpg')
+                         logger = _loggers[nspace.logger])
 
 def parse_cmd_line(nspace = None):
     if nspace is None: nspace = deepcopy(_DEFAULT_NSPACE)

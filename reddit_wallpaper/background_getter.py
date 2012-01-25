@@ -53,6 +53,7 @@ def start_update(conf, handlers = default_handlers):
     save_name = '.'.join((conf.save_file.replace('@', post_id),# <- the filename
                           imageURL.split('.')[-1])) # <- the filetype
     write_file(conf, imageURL, save_name)
+    from .platforms import set_as_background
     set_as_background(conf, save_name)
     return
 
@@ -75,16 +76,4 @@ def write_file(conf, url, save_name):
             os.fsync(f.fileno())
     else:
         conf.logger(WARNING, "there is already a file at {0}".format(save_name))
-    return
-
-def set_as_background(conf, file_location):
-    """Sets the background path to the given path"""
-    client = gconf.client_get_default()
-    worked = client.set_string(GCONF_KEY,file_location)
-    client.suggest_sync()
-    if worked:
-        conf.logger(DEBUG, 'changed the background succsessfully')
-    else:
-        conf.logger(ERROR, 'was unable to change the background')
-        raise _exceptions.Failed("could not set gconf key")
     return
