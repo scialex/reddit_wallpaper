@@ -28,6 +28,9 @@ def set_as_background(conf, file_location):
     Sets the background path to the given path. It does this by making a copy as a bitmap and 
     setting the wallpaper to that. The bitmap is always stored at the file's location and named
     current_wallpaper.bmp
+
+    This DOES NOT WORK ATM FOR UNKNOWN REASONS
+    
     """
     bmp_file_name = join(dirname(file_location), current_wallpaper.bmp)
     fle = open(file_location, 'rb')
@@ -36,7 +39,7 @@ def set_as_background(conf, file_location):
     img.save(outfile, 'BMP')
     outfile.close()
     outfile.flush()
-    os.fsync(f.fileno())
+    os.fsync(outfile.fileno())
     result = windll.user32.SystemParametersInfoA(SPI_SETDESKWALLPAPER, 0, bmp_file_name, SPIF_SENDWININICHANGE | SPIF_UPDATEINIFILE)
     if not result: # == 1
         conf.logger(ERROR, "was unable to set the registry key to change the wallpaper")
