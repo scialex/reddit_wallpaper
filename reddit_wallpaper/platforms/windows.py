@@ -30,13 +30,13 @@ def set_as_background(conf, file_location):
     current_wallpaper.bmp
     """
     bmp_file_name = join(dirname(file_location), current_wallpaper.bmp)
-    with fle as open(file_location, 'rb'):
-        img = Image.open(fle)
-        outfile = open(bmp_file_name, 'w')
-        img.save(outfile, 'BMP')
-        outfile.close()
-        outfile.flush()
-        os.fsync(f.fileno())
+    fle = open(file_location, 'rb')
+    img = Image.open(fle)
+    outfile = open(bmp_file_name, 'w')
+    img.save(outfile, 'BMP')
+    outfile.close()
+    outfile.flush()
+    os.fsync(f.fileno())
     result = windll.user32.SystemParametersInfoA(SPI_SETDESKWALLPAPER, 0, bmp_file_name, SPIF_SENDWININICHANGE | SPIF_UPDATEINIFILE)
     if not result: # == 1
         conf.logger(ERROR, "was unable to set the registry key to change the wallpaper")
