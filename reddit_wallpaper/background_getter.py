@@ -30,7 +30,6 @@ This module facilitates the actual calling of all the others,
 it is the glue that holds everything together
 """
 
-import gconf
 import json
 import os
 from . import _exceptions
