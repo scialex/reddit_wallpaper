@@ -26,10 +26,10 @@ set_as_background = lambda a, b: None
 
 if sys.platform.startswith('linux'):
     from .linux import * 
-    __all__ = [DEFAULT_SAVE_LOCATION, set_as_background]
+    __all__ = ['DEFAULT_SAVE_LOCATION', 'set_as_background']
 elif sys.platform.startswith('win32'):
     from .windows import * 
-    __all__ = [DEFAULT_SAVE_LOCATION, set_as_background]
+    __all__ = ['DEFAULT_SAVE_LOCATION', 'set_as_background']
 #elif sys.platform.startswith('darwin'):
 #    from .macosx import set_as_background as sab
 #    set_as_background = sab

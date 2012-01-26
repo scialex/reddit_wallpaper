@@ -32,4 +32,4 @@ def set_as_background(conf, file_location):
         raise _exceptions.Failed("could not set gconf key")
     return
 
-__all__ = [DEFAULT_SAVE_LOCATION, set_as_background]
+__all__ = ['DEFAULT_SAVE_LOCATION', 'set_as_background']

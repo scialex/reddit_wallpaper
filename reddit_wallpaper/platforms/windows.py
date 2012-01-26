@@ -49,4 +49,4 @@ def set_as_background(conf, file_location):
         conf.logger(INFO, "changed the wallpaper successfully")
     return 
         
-__all__ = [DEFAULT_SAVE_LOCATION, set_as_background]
+__all__ = ['DEFAULT_SAVE_LOCATION', 'set_as_background']
