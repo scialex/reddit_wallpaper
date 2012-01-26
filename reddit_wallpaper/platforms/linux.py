@@ -17,12 +17,13 @@ import gconf
 from .. import _exceptions
 from ..loggers import DEBUG, INFO, NOTICE, WARNING, ERROR, CRITICAL, ALERT, EMERGENCY
 
-GCONF_KEY = '/desktop/gnome/background/picture_filename'#key to write new wallpaper to
+_GCONF_KEY = '/desktop/gnome/background/picture_filename'#key to write new wallpaper to
+DEFAULT_SAVE_LOCATION = '~/.background_getter/@'
 
 def set_as_background(conf, file_location):
     """Sets the background path to the given path"""
     client = gconf.client_get_default()
-    worked = client.set_string(GCONF_KEY, file_location)
+    worked = client.set_string(_GCONF_KEY, file_location)
     client.suggest_sync()
     if worked:
         conf.logger(DEBUG, 'changed the background succsessfully')
@@ -30,3 +31,5 @@ def set_as_background(conf, file_location):
         conf.logger(ERROR, 'was unable to change the background, gconf client reported failure of key setting.')
         raise _exceptions.Failed("could not set gconf key")
     return
+
+__all__ = [DEFAULT_SAVE_LOCATION, set_as_background]

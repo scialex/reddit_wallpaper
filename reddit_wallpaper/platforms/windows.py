@@ -22,6 +22,7 @@ from ..loggers import DEBUG, INFO, NOTICE, WARNING, ERROR, CRITICAL, ALERT, EMER
 SPI_SETDESKWALLPAPER = 20
 SPIF_UPDATEINIFILE = 1
 SPIF_SENDWININICHANGE = 2
+DEFAULT_SAVE_LOCATION = '~/_background_getter/@'
 
 def set_as_background(conf, file_location):
     """
@@ -48,3 +49,4 @@ def set_as_background(conf, file_location):
         conf.logger(INFO, "changed the wallpaper successfully")
     return 
         
+__all__ = [DEFAULT_SAVE_LOCATION, set_as_background]
