@@ -23,8 +23,9 @@ import os
 import argparse
 import sys
 from copy import deepcopy
-from .loggers import quiet, debug, normal
 from collections import namedtuple
+from .platforms import DEFAULT_SAVE_LOCATION
+from .loggers import quiet, debug, normal
 
 DEFAULT_LOG_LEVEL = 'debug'#change later
 
@@ -54,7 +55,7 @@ _loggers = {'quiet'  : quiet,
 
 _DEFAULT_NSPACE = argparse.Namespace(overwrite  = False, # do not overwrite files
                                      num_tries  = None,  # try all submissions the request gives you
-                                     save_file  = '~/.background_getter/@',
+                                     save_file  = DEFAULT_SAVE_LOCATION,
                                      endings    = _DEFAULT_PICTURE_TYPES,
                                      subreddit  = ['wallpaper', 'wallpapers'],
                                      sort_type  = '',
