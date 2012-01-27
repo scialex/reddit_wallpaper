@@ -45,7 +45,8 @@ _DEFAULT_NSPACE = Namespace(overwrite  = False, # do not overwrite files
                             min = [None, None],
                             max = [None, None],
                             logger = DEFAULT_LOG_LEVEL,
-                            respect_flickr_nodownload = True)
+                            respect_flickr_nodownload = True,
+                            messages = [])
 
 configuration = namedtuple("configuration",
                            ["overwrite",
@@ -66,10 +67,16 @@ def get_config():
     gets the configuration that this program is running with using the command line
     argument and (eventually) the config files.
     """
-    return convert_to_configuration(parse_cmd_line(deepcopy(_DEFAULT_NSPACE)))
+    return _convert_to_configuration(parse_cmd_line(deepcopy(_DEFAULT_NSPACE)))
 
-def convert_to_configuration(nspace):
-    return configuration(overwrite = nspace.overwrite,
+def _convert_to_configuration(nspace):
+    """
+    This function should only be called from within this module.
+    This function takes in a nspace (which must have all the required fields) and converts it into a
+    configuration object. It will also print out any messages that have been queued up, using the specified
+    logger. These messages will usually be warnings about unknown options or other such stuff.
+    """
+    conf = configuration(overwrite = nspace.overwrite,
                          num_tries = nspace.num_tries,
                          save_file = realpath(expandvars(expanduser(nspace.save_file))),
                          picture_endings = nspace.endings,
@@ -78,4 +85,7 @@ def convert_to_configuration(nspace):
                          size_limit = None if [None, None] == nspace.min == nspace.max else size_limit(*(nspace.min + nspace.max)),
                          respect_flickr_nodownload = nspace.respect_flickr_nodownload,
                          logger = _LOGGERS[nspace.logger])
-
+    if hasattr(nspace, 'messages'):
+        for msg in nspace.messages:
+            conf.logger(*msg)
+    return conf
