@@ -32,13 +32,12 @@ it is the glue that holds everything together
 
 import json
 import os
-from . import _exceptions
 from urllib2 import urlopen, HTTPError
+from . import _exceptions
 from .loggers import DEBUG, INFO, NOTICE, WARNING, ERROR, CRITICAL, ALERT, EMERGENCY
 from .websites import select_image
 from .websites.handlers import default_handlers
 
-GCONF_KEY = '/desktop/gnome/background/picture_filename'#key to write new wallpaper to
 JSON_PAGE_FORMAT = 'http://api.reddit.com/r/{0}'#{0} is the subreddits name. This is where the list of possible wallpapers is
 
 def start_update(conf, handlers = default_handlers):
