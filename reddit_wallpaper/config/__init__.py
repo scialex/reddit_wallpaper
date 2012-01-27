@@ -18,10 +18,10 @@ This module is responsible for parsing the input from the cli and from any confi
 files.
 """
 
-import os
 from argparse import Namespace
 from copy import deepcopy
 from collections import namedtuple
+from os.path import realpath, expandvars, expanduser
 from .cli import parse_cmd_line
 from ..platforms import DEFAULT_SAVE_LOCATION
 from ..loggers import quiet, debug, normal
@@ -71,9 +71,7 @@ def get_config():
 def convert_to_configuration(nspace):
     return configuration(overwrite = nspace.overwrite,
                          num_tries = nspace.num_tries,
-                         save_file = os.path.realpath(
-                                         os.path.expandvars(
-                                            os.path.expanduser(nspace.save_file))),
+                         save_file = realpath(expandvars(expanduser(nspace.save_file))),
                          picture_endings = nspace.endings,
                          subreddit = '+'.join(nspace.subreddit) + '/' + nspace.sort_type,
                          allow_nsfw = nspace.allow_nsfw,
