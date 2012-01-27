@@ -1,0 +1,83 @@
+# Copyright 2012, Alex Light.
+#
+# This file is part of Reddit background updater (RBU).
+#
+# RBU is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# RBU is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with RBU.  If not, see <http://www.gnu.org/licenses/>.
+#
+
+"""
+This module is responsible for parsing the input from the cli and from any config
+files.
+"""
+
+import os
+from argparse import Namespace
+from copy import deepcopy
+from collections import namedtuple
+from .cli import parse_cmd_line
+from ..platforms import DEFAULT_SAVE_LOCATION
+from ..loggers import quiet, debug, normal
+
+DEFAULT_LOG_LEVEL = 'debug'#change later
+
+_DEFAULT_PICTURE_TYPES = ('png', 'jpg', 'jpeg', 
+                          'gif', 'svg', 'bmp')
+
+_LOGGERS = {'quiet'  : quiet,
+            'debug'  : debug,
+            'normal' : normal}
+
+_DEFAULT_NSPACE = Namespace(overwrite  = False, # do not overwrite files
+                            num_tries  = None,  # try all submissions the request gives you
+                            save_file  = DEFAULT_SAVE_LOCATION,
+                            endings    = _DEFAULT_PICTURE_TYPES,
+                            subreddit  = ['wallpaper', 'wallpapers'],
+                            sort_type  = '',
+                            allow_nsfw = False,
+                            min = [None, None],
+                            max = [None, None],
+                            logger = DEFAULT_LOG_LEVEL,
+                            respect_flickr_nodownload = True)
+
+configuration = namedtuple("configuration",
+                           ["overwrite",
+                            "num_tries",
+                            "save_file",
+                            "picture_endings",
+                            "subreddit",
+                            "allow_nsfw",
+                            "size_limit",
+                            "respect_flickr_nodownload",
+                            "logger"])
+
+size_limit = namedtuple("size_limit",
+                        ["min_x", "min_y",
+                         "max_x", "max_y"])
+def get_config():
+    """
+    gets the configuration that this program is running with using the command line
+    argument and (eventually) the config files.
+    """
+    return convert_to_configuration(parse_cmd_line(deepcopy(_DEFAULT_NSPACE)))
+
+def convert_to_configuration(nspace):
+    return configuration(overwrite = nspace.overwrite,
+                         num_tries = nspace.num_tries,
+                         save_file = os.path.realpath(
+                                         os.path.expandvars(
+                                            os.path.expanduser(nspace.save_file))),
+                         picture_endings = nspace.endings,
+                         subreddit = '+'.join(nspace.subreddit) + '/' + nspace.sort_type,
+                         allow_nsfw = nspace.allow_nsfw,
+                         size_limit = None if [None, None] == nspace.min == nspace.max else size_limit(*(nspace.min + nspace.max)),
+                         respect_flickr_nodownload = nspace.respect_flickr_nodownload,
+                         logger = _LOGGERS[nspace.logger])
+

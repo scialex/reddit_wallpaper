@@ -15,78 +15,15 @@
 #
 
 """
-This file is responsible for parsing the input from the cli and from any config
-files.
+This module contains the code nessecary to read and interpret the command line options and configuration passed
+into this program
 """
 
-import os
 import argparse
-import sys
-from copy import deepcopy
-from collections import namedtuple
-from .platforms import DEFAULT_SAVE_LOCATION
-from .loggers import quiet, debug, normal
 
-DEFAULT_LOG_LEVEL = 'debug'#change later
+__all__ = ['parse_cmd_line', 'get_parser']
 
-CONFIG_LOC = ['/etc/reddit_wallpaper', '~/.reddit_wallpaper', './reddit_wallpaper']
-
-_DEFAULT_PICTURE_TYPES = ['png', 'jpg', 'jpeg', 
-                          'gif', 'svg', 'bmp']
-
-configuration = namedtuple("configuration",
-                           ["overwrite",
-                            "num_tries",
-                            "save_file",
-                            "picture_endings",
-                            "subreddit",
-                            "allow_nsfw",
-                            "size_limit",
-                            "respect_flickr_nodownload",
-                            "logger"])
-
-size_limit = namedtuple("size_limit",
-                        ["min_x", "min_y",
-                         "max_x", "max_y"])
-
-_loggers = {'quiet'  : quiet,
-            'debug'  : debug,
-            'normal' : normal}
-
-_DEFAULT_NSPACE = argparse.Namespace(overwrite  = False, # do not overwrite files
-                                     num_tries  = None,  # try all submissions the request gives you
-                                     save_file  = DEFAULT_SAVE_LOCATION,
-                                     endings    = _DEFAULT_PICTURE_TYPES,
-                                     subreddit  = ['wallpaper', 'wallpapers'],
-                                     sort_type  = '',
-                                     allow_nsfw = False,
-                                     min = [None, None],
-                                     max = [None, None],
-                                     logger = DEFAULT_LOG_LEVEL,
-                                     respect_flickr_nodownload = True)
-
-def get_config():
-    """
-    gets the configuration that this program is running with using the command line
-    argument and (eventually) the config files.
-    """
-    return convert_to_configuration(parse_cmd_line())
-
-def convert_to_configuration(nspace):
-    return configuration(overwrite = nspace.overwrite,
-                         num_tries = nspace.num_tries,
-                         save_file = os.path.realpath(
-                                         os.path.expandvars(
-                                            os.path.expanduser(nspace.save_file))),
-                         picture_endings = nspace.endings,
-                         subreddit = '+'.join(nspace.subreddit) + '/' + nspace.sort_type,
-                         allow_nsfw = nspace.allow_nsfw,
-                         size_limit = None if [None, None] == nspace.min == nspace.max else size_limit(*(nspace.min + nspace.max)),
-                         respect_flickr_nodownload = nspace.respect_flickr_nodownload,
-                         logger = _loggers[nspace.logger])
-
-def parse_cmd_line(nspace = None):
-    if nspace is None: nspace = deepcopy(_DEFAULT_NSPACE)
+def parse_cmd_line(nspace):
     return get_parser().parse_args(namespace = nspace)
 
 def get_parser():
@@ -146,7 +83,7 @@ def get_parser():
                         action = 'store',
                         metavar = 'number',
                         dest = 'num_tries',
-                        help = "this specifies the number of images to check before giving up on finding a good match. if the value is 'none' it will never give up trying to find an image it can use")
+                        help = "this specifies the number of posts to check before giving up on finding a good match. if the value is 'none', or this flag is not used, it will test all the posts it is given for a suitable image")
     sorttype = parser.add_argument_group('Sort Type',
                                          "Select the section of the subreddit to use for sorting. NB if more than one of these switches are present the result is undefined.")
     sorttype.add_argument('--hot', action = 'store_const',
@@ -180,7 +117,6 @@ def get_parser():
 #                        help = 'use the given config file instead of the default ones')
     prnts = parser.add_argument_group("Debug info", "these control how much information is printed onto the screen and into the logs. NB if more than one of these switches is present the result is undefined")
     prnts.add_argument('--debug', action = 'store_const',
-                       default = DEFAULT_LOG_LEVEL,
                        dest = 'logger',
                        const = 'debug',
                        help = "print out debug information")
@@ -190,6 +126,4 @@ def get_parser():
                        help = "do not print out status info")
     return parser
 
-def parse_config_files(files = CONFIG_LOC):
-    pass
 
