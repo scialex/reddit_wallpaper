@@ -51,7 +51,7 @@ _INT     = compile('^-?[0-9]+$')
 _FLOAT   = compile('^-?[0-9]*\.[0-9]+$')
 
 value_info = namedtuple('value_info',
-                        ('value','lineno', 'file'))
+                        ('key','value','lineno', 'file'))
 
 def _split(ln):
     d = shlex(StringIO(ln))
@@ -93,14 +93,14 @@ def parse(s, name = None, default_value = None):
     out = dict()
     for l, n in zip(d.readlines(), _counter(1)):
         sp = _split(l)
-        key = sp[0]
+        key = sp[0].lower()
         if len(sp) == 1:
-            out[key] = value_info(default_value, n, name)
+            out[key] = value_info(key, default_value, n, name)
             continue       
         elif len(sp) == 2:
-            out[key] = value_info(numberify(sp[1]), n, name)
+            out[key] = value_info(key, numberify(sp[1]), n, name)
             continue
         else:
-            out[key] = value_info(list(map(numberify, sp[1:])), n, name)
+            out[key] = value_info(key, list(map(numberify, sp[1:])), n, name)
             continue
     return out
