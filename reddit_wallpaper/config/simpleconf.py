@@ -51,7 +51,7 @@ _INT     = compile('^-?[0-9]+$')
 _FLOAT   = compile('^-?[0-9]*\.[0-9]+$')
 
 value_info = namedtuple('value_info',
-                        ('value','lineno'))
+                        ('value','lineno', 'file'))
 
 def _split(ln):
     return [t for t in shlex(StringIO(ln))]
@@ -70,7 +70,7 @@ def numberify(n):
     else:
         return n
 
-def parse(s, default_value = None):
+def parse(s, name = None, default_value = None):
     """
     s is a file name/object and returns a dict containing the values for all the keys
     keys.
@@ -83,19 +83,22 @@ def parse(s, default_value = None):
     multiple values and as a single value if there were not, and the lineno it was found on
     (for error reporting)
     """
-    if isinstance(s, str): s = open(s)
+    if isinstance(s, str):
+        s = open(s)
     if !hasattr(s, 'readlines'): raise AttributeError("the object {0} does not have a 'readlines' function".format(s))
+    if name is None:
+        name = getattr(s, "name", 'unknown')
     out = dict()
     for l, n in zip(d.readlines(), _counter(1)):
         sp = _split(l)
         key = sp[0]
         if len(sp) == 1:
-            out[key] = value_info(default_value, n)
+            out[key] = value_info(default_value, n, name)
             continue       
         elif len(sp) == 2:
-            out[key] = value_info(numberify(sp[1]),n)
+            out[key] = value_info(numberify(sp[1]), n, name)
             continue
         else:
-            out[key] = value_info(list(map(numberify, sp[1:])), n)
+            out[key] = value_info(list(map(numberify, sp[1:])), n, name)
             continue
     return out
