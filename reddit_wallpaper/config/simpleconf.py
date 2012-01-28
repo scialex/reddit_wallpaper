@@ -31,7 +31,7 @@ is the same as
         key a b \\
             c d 
 
-Comma's are ignored during reading
+Commas and parenthesis are ignored during reading
 
 ""'s can be used just like they are in bash.
 
@@ -54,7 +54,9 @@ value_info = namedtuple('value_info',
                         ('value','lineno', 'file'))
 
 def _split(ln):
-    return [t for t in shlex(StringIO(ln))]
+    d = shlex(StringIO(ln))
+    d.whitespace+='()'
+    return list(d)
 
 def _counter(start = 0):
     n = start
