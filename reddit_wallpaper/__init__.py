@@ -18,7 +18,7 @@ __author__ = "Alexander Light"
 #from reddit_wallpaper.background_getter import start_update
 #from reddit_wallpaper.config import get_config
 #from reddit_wallpaper.loggers import DEBUG, INFO, NOTICE, WARNING, ERROR, CRITICAL, ALERT, EMERGENCY
-from urllib2 import HTTPError
+import urllib2
 from . import _exceptions
 from .background_getter import start_update
 from .config import get_config
@@ -28,13 +28,16 @@ def main():
     conf = get_config()
     conf.logger(INFO, 'Starting change of wallpaper')
     try:
+        opener = urllib2.build_opener()
+        opener.addheaders = [('User-agent','reddit-wallpaper-program')]
+        urllib2.install_opener(opener)
         start_update(conf)
     except _exceptions.Failed as f:
         conf.logger(WARNING,
                     'Failed to update wallpaper, reason was {0}'.format(f.args[0]))
     except _exceptions.Unsuccessful as u:
         conf.logger(INFO, "Did not change wallpaper")
-    except HTTPError as h:
+    except urllib2.HTTPError as h:
         conf.logger(ERROR,
                     "An HTTPError was thrown, reason given was {0}".format(str(h)))
     except Exception as e:
