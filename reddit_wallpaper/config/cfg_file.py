@@ -13,6 +13,7 @@
 # along with RBU.  If not, see <http://www.gnu.org/licenses/>.
 #
 
+from os import access, R_OK
 from .confparser import confToDict 
 from ..loggers import WARNING
 
@@ -22,5 +23,9 @@ UNKNOWN_ARG_FORMAT = "The argument {0}, from file {1} was not recognized."
 
 
 def parse_cfg_file(nspace, f_name):
-    pass
+    if not os.access(f_name, R_OK):
+        nspace.messages.append("there is no config file at {}".format(f_name))
+        return nspace
+    conf = confToDict(f_name)
+    return nspace
 

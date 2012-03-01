@@ -4,6 +4,7 @@ Make it work with GSettings
 Move the main steps from background_getter.py to __init__.py
 Make it create A SINGLE directory if need be
 Give it a config file
+Make the config file use conf-parse (different sections are the options for different subreddits!)
 add config option to make it only download
 Change the save-file spec so that one can control the file extension.
 Make it possible to always save as a specific type.
