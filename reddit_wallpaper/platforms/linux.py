@@ -12,18 +12,27 @@
 # You should have received a copy of the GNU General Public License
 # along with RBU.  If not, see <http://www.gnu.org/licenses/>.
 #
-
 try:
-    import gconf
-    _HAS_GCONF = True
-except ImportError:
-    _HAS_GCONF = False
-
-try:
-    from gio import gsettings
-    _HAS_GIO = True
+    from gi.repository.Gio import Settings
+    _HAS_GI_SETTINGS = True
 except (ImportError, AttributeError):
-    _HAS_GIO = False
+    _HAS_GI_SETTINGS = False
+
+try:
+    from gi.repository.GConf import Client
+    _HAS_GI_GCONF = True
+except (ImportError, AttributeError):
+    _HAS_GI_GCONF = False
+
+#gi and old bindings do not play well together so make them seperate
+if not (_HAS_GI_GCONF or _HAS_GI_SETTINGS):
+    try:
+        import gconf
+        _HAS_GCONF = True
+    except ImportError:
+        _HAS_GCONF = False
+else: _HAS_GCONF = False
+
 
 from .. import _exceptions
 from ..loggers import DEBUG, INFO, NOTICE, WARNING, ERROR, CRITICAL, ALERT, EMERGENCY
@@ -50,7 +59,7 @@ def _log_failed(conf, mod = None):
         msg = msg.format("")
     conf.logger(ERROR, msg)
 
-def _gconf_set_as_background(conf, file_location):
+def _gconf_old_set_as_background(conf, file_location):
     """Sets the background path to the given path"""
     client = gconf.client_get_default()
     worked = client.set_string(_GCONF_KEY, file_location)
@@ -62,12 +71,23 @@ def _gconf_set_as_background(conf, file_location):
         raise _exceptions.Failed("could not set gconf key")
     return
 
+def _gi_gconf_set_as_background(conf, file_location):
+    client = Client.get_default()
+    worked = client.set_string(_GCONF_KEY, file_location)
+    client.suggest_sync()
+    if worked:
+        _log_succsess(conf, "gi gconf")
+    else:
+        _log_failed(conf, "gi gconf")
+        raise _exceptions.Failed("could not set gconf key")
+    return
+
 def _gsettings_set_as_background(conf, file_location):
     """Sets the background path to the given path in gsettings"""
-    settings = gio.gsettings.new(_GSETTINGS_SCHEMA)
-    worked = settings.set_string(_GSETTINGS_KEY,file_location)
+    gsettings = Settings.new(_GSETTINGS_SCHEMA)
+    worked = gsettings.set_string(_GSETTINGS_KEY,file_location)
     # I do not think i need this sync command.
-    #settings.sync()
+    gsettings.sync()
     if worked:
         _log_succsess(conf,"gsetting")
     else:
@@ -77,17 +97,23 @@ def _gsettings_set_as_background(conf, file_location):
 
 def set_as_background(conf, file_location):
     thrown = True
-    if _HAS_GIO:
+    if _HAS_GI_SETTINGS:
         try:
             _gsettings_set_as_background(conf, file_location)
             thrown = False
-        except _exceptions.Failed as e:
+        except _exceptions.Failed:
+            pass
+    if _HAS_GI_GCONF:
+        try:
+            _gi_gconf_set_as_background(conf, file_location)
+            thrown = False
+        except _exceptions.Failed:
             pass
     if _HAS_GCONF:
         try:
-            _gconf_set_as_background(conf, file_location)
+            _gconf_old_set_as_background(conf, file_location)
             thrown = False
-        except _exceptions.Failed as e:
+        except _exceptions.Failed:
             pass
     if thrown:
         raise _exceptions.Failed("was unable to set background using any backend")
