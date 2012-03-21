@@ -86,7 +86,7 @@ def set_as_background(conf, file_location):
             pass
     if _HAS_GCONF:
         try:
-            _gconf_set_as_background(conf, file_location):
+            _gconf_set_as_background(conf, file_location)
             thrown = False
         except _exceptions.Failed as e:
             thrown.append(e)
