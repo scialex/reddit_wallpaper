@@ -20,9 +20,9 @@ except ImportError:
     _HAS_GCONF = False
 
 try:
-    import gio
+    from gio import gsettings
     _HAS_GIO = True
-except ImportError:
+except (ImportError, AttributeError):
     _HAS_GIO = False
 
 from .. import _exceptions
@@ -35,7 +35,7 @@ _GSETTINGS_KEY = "picture-uri" #key for gsettings
 DEFAULT_SAVE_LOCATION = '~/.background_getter/@'
 
 def _log_succsess(conf, mod = None):
-    msg = 'changed the background{} succsessfully'
+    msg = 'changed the background{0} succsessfully'
     if mod is not None:
         msg = msg.format(" ".join((" in",str(mod))))
     else:
@@ -43,7 +43,7 @@ def _log_succsess(conf, mod = None):
     conf.logger(DEBUG, msg)
 
 def _log_failed(conf, mod = None):
-    msg = 'was unable to change the background, {}client reported failure of key setting.'
+    msg = 'was unable to change the background, {0}client reported failure of key setting.'
     if mod is not None:
         msg = msg.format(mod)
     else:
@@ -82,14 +82,12 @@ def set_as_background(conf, file_location):
             _gsettings_set_as_background(conf, file_location)
             thrown = False
         except _exceptions.Failed as e:
-            thrown.append(e)
             pass
     if _HAS_GCONF:
         try:
             _gconf_set_as_background(conf, file_location)
             thrown = False
         except _exceptions.Failed as e:
-            thrown.append(e)
             pass
     if thrown:
         raise _exceptions.Failed("was unable to set background using any backend")
