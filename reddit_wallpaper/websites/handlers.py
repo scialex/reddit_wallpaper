@@ -6,7 +6,7 @@ import re
 import json
 from urllib2 import urlopen, HTTPError
 from .utils import check_size, get_size_directly
-from .._exceptions import Unsuitable
+from .._exceptions import Unsuitable, Unsuccessful
 from ..loggers import DEBUG, INFO, NOTICE, WARNING, ERROR, CRITICAL, ALERT, EMERGENCY
 from .decorators import *
 
@@ -39,11 +39,11 @@ def direct_link_handler(conf, child):
     except Exception as e:
         conf.logger(WARNING,
                     "something happened while trying to retrieve the image at {0} in order to determine its size. type of exception was {1} and reason given was {2}".format(url, type(e), e.args))
-        raise Unsuitable()
+        raise Unsuccessful()
     if not check_size(conf, size):
         conf.logger(DEBUG,
                     "the image at {0} was not the right size".format(url))
-        raise Unsuitable()
+        raise Unsuccessful()
     conf.logger(INFO, 'found {0}, link was direct to a non_imgur site'.format(url))
     return url
 

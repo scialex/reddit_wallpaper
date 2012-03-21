@@ -23,18 +23,6 @@ def select_image(conf, data, handlers = default_handlers):
     all other handler's with the same priority. By default the priority is 100. all
     the default handlers have a priority of 100.
     """
-    def _handler_cmp(a, b):
-        if not hasattr(a, 'priority'): a.priority = 100
-        if not hasattr(b, 'priority'): b.priority = 100
-        if a.priority == b.priority:
-            if hasattr(a, '_runtime_check'):
-                return 1 # we want the runtime check to be last
-            else:
-                return -1
-        elif a.priority > b.priority:
-            return -1
-        else:
-            return 1
     srt_handlers = sorted(handlers, _handler_cmp)
     for child in data[0:conf.num_tries]:
         conf.logger(INFO, "trying reddit post {0}, is a link to {1}.".format(child['data']['id'],
@@ -42,15 +30,43 @@ def select_image(conf, data, handlers = default_handlers):
         if conf.allow_nsfw is False and child["data"]["over_18"] is True:
             conf.logger(INFO, "the image at {0} was marked NSFW, skiping".format(child['data']['id']))
             continue
-        try:
-            def _filter_func(f):
-                if hasattr(f, 'acceptable'):
-                    return f.acceptable(child)
+        for f in ifilter(_filter_func(child), srt_handlers):
+            try:
+                possible = f(conf, child), child['data']['id']
+                #check that it is a legal ending
+                if possible[0].split('.')[-1] in conf.picture_endings:
+                    return possible
                 else:
-                    return True
-            for f in ifilter(_filter_func, sorted(handlers, _handler_cmp)):
-                return f(conf, child), child['data']['id']
-        except Unsuitable:
-            continue
+                    conf.logger(INFO,"the image at {0} was of an illegal file type, skipping".format(child['data']['id']))
+                    #the handler worked but is the wrong file-type, next picture
+                    break
+            except Unsuitable:
+                # there is something wrong with the picture (i.e. wrong size) so skip it
+                break
+            except Unsuccessful:
+                # this handler was not made for this picture, try again
+                continue
+        conf.logger(INFO, "could not find a suitable background within {0}.".format(child['data']['id']))
     conf.logger(WARNING, "none of the possibilities could be used")
     raise Failed("could not get a suitable url")
+
+def _handler_cmp(a, b):
+    if not hasattr(a, 'priority'): a.priority = 100
+    if not hasattr(b, 'priority'): b.priority = 100
+    if a.priority == b.priority:
+        if hasattr(a, '_runtime_check'):
+            return 1 # we want the runtime check to be last
+        else:
+            return -1
+    elif a.priority > b.priority:
+        return -1
+    else:
+        return 1
+
+def _filter_func(child):
+    def _(f):
+        if hasattr(f, 'acceptable'):
+            return f.acceptable(child)
+        else:
+            return True
+    return _
