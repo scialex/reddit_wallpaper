@@ -25,7 +25,7 @@ except (ImportError, AttributeError):
     _HAS_GI_GCONF = False
 
 #gi and old bindings do not play well together so make them seperate
-if not (_HAS_GI_GCONF or _HAS_GI_SETTINGS):
+if not _HAS_GI_GCONF and not _HAS_GI_SETTINGS:
     try:
         import gconf
         _HAS_GCONF = True
@@ -85,7 +85,7 @@ def _gi_gconf_set_as_background(conf, file_location):
 def _gsettings_set_as_background(conf, file_location):
     """Sets the background path to the given path in gsettings"""
     gsettings = Settings.new(_GSETTINGS_SCHEMA)
-    worked = gsettings.set_string(_GSETTINGS_KEY,file_location)
+    worked = gsettings.set_string(_GSETTINGS_KEY,"file://"+file_location)
     # I do not think i need this sync command.
     gsettings.sync()
     if worked:
