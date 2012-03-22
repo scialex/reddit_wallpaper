@@ -18,3 +18,79 @@ To run
 
 This program has only been tested on Ubuntu Linux 10.04.3 and Ubuntu Linux 12.04 beta and it should work on all systems which use either gconf or gsettings to store the background file name. 
 
+usage: reddit-wallpaper [-h] [-o NAME] [--no-overwrite | --overwrite]
+                        [--endings ENDINGS [ENDINGS ...]] [--min MIN_X MIN_Y]
+                        [--max MAX_X MAX_Y] [-N | -n] [-t number] [--hot]
+                        [--new] [--controversial] [--top]
+                        [--respect-flickr-download-flag | --ignore-flickr-download-flag]
+                        [--debug] [--quiet] [--syslog]
+                        [subreddit [subreddit ...]]
+
+this will retrieve a background from some subreddit and set its top image link
+as the background
+
+positional arguments:
+  subreddit             the subreddits to check for images
+
+optional arguments:
+  -h, --help            show this help message and exit
+  -o NAME, --output NAME, --save-file NAME
+                        the file by which you want the downloaded file to be
+                        saved under. note all occurances of '@' are replaced
+                        by the reddit post id number of the reddit submission,
+                        this will be unique to each file. if you do not use @
+                        at all in the name be sure that this is set to
+                        overwrite already saved files
+  --no-overwrite        do not overwrite any preexisting image files if the
+                        name is the same, this is enabled by default
+  --overwrite           redownload and overwrite any files bearing the same
+                        name as the one being downloaded, this is disabled by
+                        default
+  --endings ENDINGS [ENDINGS ...]
+                        the file types to accept for download
+  -N, --allow-nsfw      allow nsfw content to be downloaded
+  -n, --no-nsfw         do not download any content marked nsfw
+  -t number, --tries number
+                        this specifies the number of posts to check before
+                        giving up on finding a good match. if the value is
+                        'none', or this flag is not used, it will test all the
+                        posts it is given for a suitable image
+  --respect-flickr-download-flag
+                        respect the wishes of the poster of images hosted on
+                        Flickr, only downloading them if the poster has
+                        enabled it, This is activated by default.
+  --ignore-flickr-download-flag
+                        Ignore the no download flag on images stored on flikr,
+                        downloading them even if the poster has disabled
+                        downloads.
+
+Size limits:
+  set the size limit for the images to be downloaded. Each value must be
+  either a positive non-zero number or none if there is no limit for that
+  variable
+
+  --min MIN_X MIN_Y     this specifices the minimum size of the image. Each
+                        argument must be either a positive non-zero number or
+                        the word 'none'
+  --max MAX_X MAX_Y     this specifices the maximum size of the image. Each
+                        argument must be either a positive non-zero number or
+                        the word 'none'
+
+Sort Type:
+  Select the section of the subreddit to use for sorting. NB if more than
+  one of these switches are present the result is undefined.
+
+  --hot                 The default. Use the 'What's Hot' section of the
+                        subreddit
+  --new                 Use the 'New' section of the subreddit
+  --controversial       Use the 'Controversial' section of the subreddit
+  --top                 Use the 'Top' section of the subreddit
+
+Debug info:
+  these control how much information is printed onto the screen and into the
+  logs. NB if more than one of these switches is present the result is
+  undefined
+
+  --debug               print out debug information
+  --quiet               do not print out status info
+  --syslog              print to the screen and store in syslog
