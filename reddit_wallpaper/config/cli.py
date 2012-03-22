@@ -124,6 +124,10 @@ def get_parser():
                        dest = 'logger',
                        const = 'quiet',
                        help = "do not print out status info")
+    prnts.add_argument('--syslog', action = 'store_const',
+                       dest = 'logger',
+                       const = 'normal',
+                       help = "print to the screen and store in syslog")
     return parser
 
 

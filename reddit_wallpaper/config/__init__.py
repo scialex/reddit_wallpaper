@@ -24,15 +24,16 @@ from collections import namedtuple
 from os.path import realpath, expandvars, expanduser
 from .cli import parse_cmd_line
 from ..platforms import DEFAULT_SAVE_LOCATION
-from ..loggers import quiet, debug, normal
+from ..loggers import quiet, debug, normal, no_log
 
-DEFAULT_LOG_LEVEL = 'debug'#change later
+DEFAULT_LOG_LEVEL = 'no-log'#change later
 
 _DEFAULT_PICTURE_TYPES = ('png', 'jpg', 'jpeg', 
                           'gif', 'svg', 'bmp')
 
 _LOGGERS = {'quiet'  : quiet,
             'debug'  : debug,
+            'no-log' : no_log,
             'normal' : normal}
 
 _DEFAULT_NSPACE = Namespace(overwrite  = False, # do not overwrite files
