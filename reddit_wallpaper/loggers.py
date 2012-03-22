@@ -80,3 +80,4 @@ def normal_gen(name, min_lvl):
 quiet  = quiet_gen(LOG_NAME,  WARNING)
 normal = normal_gen(LOG_NAME, WARNING)
 debug  = normal_gen(LOG_NAME, DEBUG)
+no_log = printer_gen(LOG_NAME, DEBUG)
