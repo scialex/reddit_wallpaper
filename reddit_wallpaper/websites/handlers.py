@@ -119,7 +119,10 @@ def imgur_handler(conf, child):
         data = json.loads(urlopen(IMGUR_JSON_FORMAT.format(name)).read())
     except HTTPError:
         conf.logger(WARNING,
-                    "was unable to use the imgur api to determine the size of the image at {0}, skiping".format(url))
+                    "was unable to connect to the imgur api to determine the size of the image at {0}, skiping".format(url))
+        raise Unsuitable()
+    except ValueError as v:
+        conf.logger(WARNING, "Could not deserialize JSON object, imgur might be down")
         raise Unsuitable()
     #check if the size is right
     if not check_size(conf, (data["image"]["image"]["width"],
