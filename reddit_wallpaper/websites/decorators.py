@@ -60,7 +60,7 @@ def requires_URL(url):
 #that its still here means that it already has a domain requirement
             func.acceptable = lambda child: match(child) and other_dmn(child)
         else:
-            func.is_suitable = match
+            func.acceptable = match
         return func
     return dec
 
