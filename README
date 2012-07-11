@@ -14,9 +14,7 @@ To run
 
 1) install by running python setup.py install
 
-2) Make a directory at ~/.background_getter (i.e. `mkdir ~/.background_getter`, I really need to automate this)
-
-3) call: reddit-wallpaper [options] [subreddit1 [subreddit2 ...]]
+2) call: reddit-wallpaper [options] [subreddit1 [subreddit2 ...]]
 
 This program has only been tested on Ubuntu Linux 10.04.3 and Ubuntu Linux 12.04 beta and it should work on all systems which use either gconf or gsettings to store the background file name. 
 

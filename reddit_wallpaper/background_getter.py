@@ -37,6 +37,7 @@ from . import _exceptions
 from .loggers import DEBUG, INFO, NOTICE, WARNING, ERROR, CRITICAL, ALERT, EMERGENCY
 from .websites import select_image
 from .websites.handlers import default_handlers
+from .platforms import DEFAULT_SAVE_LOCATION
 
 JSON_PAGE_FORMAT = 'http://api.reddit.com/r/{0}'#{0} is the subreddits name. This is where the list of possible wallpapers is
 
@@ -62,6 +63,10 @@ def write_file(conf, url, save_name):
     to the given location, if there is already a file at save_name it
     will niether download nor save the file.
     """
+    if not os.path.exists(os.path.dirname(save_name)):
+        if conf.save_file == os.path.expanduser(DEFAULT_SAVE_LOCATION):
+            conf.logger(WARNING, "The folder {0} does not exist, but as default save location creating it".format(os.path.dirname(save_name)))
+            os.mkdir(os.path.dirname(save_name))
     if conf.overwrite or not os.access(save_name, os.F_OK):
         if not os.access(os.path.dirname(save_name), os.W_OK):
             conf.logger(ERROR, "The location {0} is not writable by this process".format(save_name))
