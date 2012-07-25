@@ -4,7 +4,11 @@
 #
 import re
 import json
-from urllib2 import urlopen, HTTPError
+try:
+    from urllib2 import urlopen, HTTPError
+except ImportError:
+    from urllib.request import urlopen
+    from urllib.error import HTTPError
 from .utils import check_size, get_size_directly
 from .._exceptions import Unsuitable, Unsuccessful
 from ..loggers import DEBUG, INFO, NOTICE, WARNING, ERROR, CRITICAL, ALERT, EMERGENCY

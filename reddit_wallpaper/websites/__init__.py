@@ -6,7 +6,17 @@
 
 from .handlers import default_handlers
 from .._exceptions import *
-from itertools import ifilter
+try:
+    from functools import cmp_to_key
+except ImportError: # workaround for python2.6
+    cmp_to_key = lambda a: a
+    def sorted(a, key):
+        return __builtins__.sorted(a, cmp=key) 
+
+try:
+    from itertools import ifilter as filter
+except ImportError:
+    pass
 from ..loggers import DEBUG, INFO, NOTICE, WARNING, ERROR, CRITICAL, ALERT, EMERGENCY
 
 
@@ -23,14 +33,14 @@ def select_image(conf, data, handlers = default_handlers):
     all other handler's with the same priority. By default the priority is 100. all
     the default handlers have a priority of 100.
     """
-    srt_handlers = sorted(handlers, _handler_cmp)
+    srt_handlers = sorted(handlers, key = cmp_to_key(_handler_cmp))
     for child in data[0:conf.num_tries]:
         conf.logger(INFO, "trying reddit post {0}, is a link to {1}.".format(child['data']['id'],
                                                                              child['data']['url']))
         if conf.allow_nsfw is False and child["data"]["over_18"] is True:
             conf.logger(INFO, "the image at {0} was marked NSFW, skiping".format(child['data']['id']))
             continue
-        for f in ifilter(_filter_func(child), srt_handlers):
+        for f in filter(_filter_func(child), srt_handlers):
             try:
                 possible = f(conf, child), child['data']['id']
                 #check that it is a legal ending

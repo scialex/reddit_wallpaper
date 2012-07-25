@@ -32,7 +32,11 @@ it is the glue that holds everything together
 
 import json
 import os
-from urllib2 import urlopen, HTTPError
+try:
+    from urllib2 import urlopen, HTTPError
+except ImportError:
+    from urllib.request import urlopen
+    from urllib.error import HTTPError
 from . import _exceptions
 from .loggers import DEBUG, INFO, NOTICE, WARNING, ERROR, CRITICAL, ALERT, EMERGENCY
 from .websites import select_image
@@ -44,7 +48,7 @@ JSON_PAGE_FORMAT = 'http://api.reddit.com/r/{0}'#{0} is the subreddits name. Thi
 def start_update(conf, handlers = default_handlers):
     """Updates the background image using the configuration stored in conf"""
     json_data = json.loads(urlopen(
-                   JSON_PAGE_FORMAT.format(conf.subreddit)).read())["data"]["children"]
+                   JSON_PAGE_FORMAT.format(conf.subreddit)).read().decode())["data"]["children"]
     conf.logger(DEBUG,
                 "retrieved json page from subreddit {0} successfully".format(conf.subreddit))
     imageURL, post_id = select_image(conf, json_data, handlers)

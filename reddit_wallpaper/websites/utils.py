@@ -3,11 +3,25 @@
 # This file is part of Reddit background updater (RBU).
 #
 
-from PIL import Image
-from StringIO import StringIO
-from urllib2 import urlopen
+try:
+    from PIL import Image
+    NO_PIL = False
+except ImportError:
+    NO_PIL = True
+try:
+    from StringIO import StringIO
+except ImportError:
+    from io import StringIO
+try:
+    from urllib2 import urlopen
+except ImportError:
+    from urllib.request import urlopen
+
+from ..loggers import ERROR
 
 def get_size_directly(url):
+    if NO_PIL: 
+        return None
     return Image.open(StringIO(urlopen(url).read())).size
 
 def check_size(conf, img_size):
@@ -17,6 +31,8 @@ def check_size(conf, img_size):
     configuration given
     """
     if img_size is None:
+        if NO_PIL:
+            conf.logger(ERROR, "We were unable to import PIL and therefore could not determine the size of the image")
         return True # we were not able to determine the size of the image
     size_limit = conf.size_limit
     x = img_size[0]

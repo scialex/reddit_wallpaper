@@ -14,7 +14,6 @@
 #
 
 from os import access, R_OK
-from .confparser import confToDict 
 from ..loggers import WARNING
 
 __all__ = ['parse_cfg_file']
@@ -26,6 +25,5 @@ def parse_cfg_file(nspace, f_name):
     if not os.access(f_name, R_OK):
         nspace.messages.append("there is no config file at {}".format(f_name))
         return nspace
-    conf = confToDict(f_name)
     return nspace
 

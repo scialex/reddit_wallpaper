@@ -14,6 +14,7 @@
 # along with RBU.  If not, see <http://www.gnu.org/licenses/>.
 #
 #this file is part of the Reddit Background Updater
+from __future__ import print_function
 import sys
 try:
     import syslog
@@ -49,7 +50,7 @@ def printer_gen(name, min_lvl):
     """
     def printer(lvl, msg):
         if lvl <= min_lvl:
-            print LEVELS[lvl] + ": " + msg
+            print(LEVELS[lvl] + ": " + msg)
         return
     return printer
 
