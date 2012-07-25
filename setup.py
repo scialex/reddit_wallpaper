@@ -7,7 +7,7 @@ except ImportError:
 
 
 setup(name = 'reddit_wallpaper',
-      version = '0.4',
+      version = '0.6',
       description = 'updates the wallpaper from reddit',
       author = 'Alexander Light',
       packages = ['reddit_wallpaper',
