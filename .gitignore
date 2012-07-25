@@ -1,9 +1,11 @@
 *.py[co]
 
 # Packages
+makefile
 *.egg
 *.egg-info
 dist
+deb_dist
 build
 eggs
 parts
