@@ -44,9 +44,9 @@ def main():
     except HTTPError as h:
         conf.logger(ERROR,
                     "An HTTPError was thrown, reason given was {0}".format(str(h)))
-     except Exception as e:
-         conf.logger(ERROR,
+    except Exception as e:
+        conf.logger(ERROR,
                      'an uncaught exception was thrown, reason given was {0}, type was given as {1}, args were {2}'.format(e.args[0], type(e), e.args))
-     else:
-         conf.logger(INFO, 'all done changing wallpaper')
+    else:
+        conf.logger(INFO, 'all done changing wallpaper')
 
