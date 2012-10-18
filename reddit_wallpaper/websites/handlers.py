@@ -119,12 +119,12 @@ def choose_flickr_size(conf, data):
 @requires_URL(re.compile("http://imgur.com/(?!a/)"))
 def imgur_handler(conf, child):
     url = child['data']['url']
-    name = url.split('/')[-1]
+    name = url.split('/')[-1].split('.')[0]
     try:
         data = json.loads(urlopen(IMGUR_JSON_FORMAT.format(name)).read())
     except HTTPError:
         conf.logger(WARNING,
-                    "was unable to connect to the imgur api to determine the size of the image at {0}, skiping".format(url))
+                    "was unable to connect to the imgur api for the image at {0}, skiping".format(url))
         raise Unsuitable()
     except ValueError as v:
         conf.logger(WARNING, "Could not deserialize JSON object, imgur might be down")
