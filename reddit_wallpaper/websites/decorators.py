@@ -64,18 +64,62 @@ def requires_URL(url):
         return func
     return dec
 
+def forbids_URL(url):
+    """
+    a decorator that is given either a regex or a string and
+    puts the is_suitable attribute on the given function.
+    this attribute is a function that will return true when the
+    the url attribute on the reddit post does not matches any of the
+    domains set to be required.
+    """
+    if isinstance(url, _regex_type):
+        match = lambda dmn: url.search(dmn['data']['url']) is None
+    else:
+        match = lambda dmn: url != dmn['data']['url']
+    def dec(func):
+        if hasattr(func, 'acceptable'):
+            other_dmn = func.acceptable
+#that its still here means that it already has a domain requirement
+            func.acceptable = lambda child: match(child) and other_dmn(child)
+        else:
+            func.acceptable = match
+        return func
+    return dec
+
 def requires_domain(domain):
     """
     a decorator that is given either a regex or a string and
     puts the is_suitable attribute on the given function.
     this attribute is a function that will return true when the
     the domain attribute on the reddit post matches all of the
-    domains set to be required.
+    domains set to be forbidden.
     """
     if isinstance(domain, _regex_type):
         match = lambda child: domain.search(child['data']['domain']) is not None
     else:
         match = lambda child: domain == child['data']['domain']
+    def dec(func):
+        if hasattr(func, 'acceptable'):
+            other_dmn = func.acceptable
+#that its still here means that it already has a domain requirement
+            func.acceptable = lambda dmn: match(dmn) and other_dmn(dmn)
+        else:
+            func.acceptable = match
+        return func
+    return dec
+
+def forbids_domain(domain):
+    """
+    a decorator that is given either a regex or a string and
+    puts the is_suitable attribute on the given function.
+    this attribute is a function that will return true when the
+    the domain attribute on the reddit post matches none of the
+    domains set to be forbidden.
+    """
+    if isinstance(domain, _regex_type):
+        match = lambda child: domain.search(child['data']['domain']) is None
+    else:
+        match = lambda child: domain != child['data']['domain']
     def dec(func):
         if hasattr(func, 'acceptable'):
             other_dmn = func.acceptable

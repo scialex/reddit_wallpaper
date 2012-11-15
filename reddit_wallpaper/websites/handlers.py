@@ -140,6 +140,7 @@ def imgur_handler(conf, child):
 
 @priority(100)
 @requires_domain(re.compile("^.*\.?deviantart\.com$"))
+@forbids_URL(re.compile(".*(jpg|jpeg|png|gif|svg|bmp)$"))
 def deviantart_handler(conf, child):
     url = child['data']['url']
     try: data = json.loads(urlopen(DEVIANT_ART_JSON_FORMAT.format(url)).read())
