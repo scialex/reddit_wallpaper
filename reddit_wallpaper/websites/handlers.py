@@ -58,7 +58,7 @@ def i_imgur_handler(conf, child):
     this function will find the download link for this image as long
     as it is a link to imgur.com, it will just skip any albums
     """
-    url = child['data']['url']
+    url = child['data']['url'].split("?")[0]
     if conf.size_limit is not None:
         try:
             data = json.loads(urlopen(IMGUR_JSON_FORMAT.format(url.split('/')[-1][:5])).read())
