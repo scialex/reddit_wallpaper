@@ -117,6 +117,7 @@ def choose_flickr_size(conf, data):
 @priority(100)
 @requires_domain('imgur.com')
 @requires_URL(re.compile("http://imgur.com/(?!a/)"))
+@forbids_URL(re.compile("http://imgur.com/gallery/.*"))
 def imgur_handler(conf, child):
     url = child['data']['url']
     name = url.split('/')[-1].split('.')[0]
