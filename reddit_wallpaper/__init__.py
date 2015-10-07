@@ -39,14 +39,18 @@ def main():
     except _exceptions.Failed as f:
         conf.logger(WARNING,
                     'Failed to update wallpaper, reason was {0}'.format(f.args[0]))
+        raise
     except _exceptions.Unsuccessful as u:
         conf.logger(INFO, "Did not change wallpaper")
+        raise
     except HTTPError as h:
         conf.logger(ERROR,
                     "An HTTPError was thrown, reason given was {0}".format(str(h)))
+        raise
     except Exception as e:
         conf.logger(ERROR,
                      'an uncaught exception was thrown, reason given was {0}, type was given as {1}, args were {2}'.format(e.args[0], type(e), e.args))
+        raise
     else:
         conf.logger(INFO, 'all done changing wallpaper')
 
