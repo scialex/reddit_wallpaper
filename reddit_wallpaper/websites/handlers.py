@@ -61,7 +61,7 @@ def i_imgur_handler(conf, child):
     url = child['data']['url'].split("?")[0]
     if conf.size_limit is not None:
         try:
-            data = json.loads(urlopen(IMGUR_JSON_FORMAT.format(url.split('/')[-1][:5])).read())
+            data = json.loads(urlopen(IMGUR_JSON_FORMAT.format(url.split('/')[-1][:5])).read().decode("utf-8"))
             conf.logger(DEBUG,
                         "was able to retrieve the image metadata from imgur for image {0}".format(url))
         except HTTPError:
@@ -84,7 +84,7 @@ def flickr_handler(conf, child):
         #                       0      1           2          3       4          *5*    etc
         photo_id = url.split('/')[5]
         conf.logger(DEBUG, 'flickr link found. url is {0}, photo_id determined to be {1}'.format(url, photo_id))
-        data = json.loads(urlopen(FLICKR_JSON_FORMAT.format(photo_id)).read())
+        data = json.loads(urlopen(FLICKR_JSON_FORMAT.format(photo_id)).read().decode("utf-8"))
         if data['stat'] != 'ok':
             conf.logger(WARNING, "got a failure response from the flickr api. status was given as {0}. message was given as {1}. skipping this link".format(data['stat'], data['message']))
             raise Unsuitable()
@@ -122,7 +122,7 @@ def imgur_handler(conf, child):
     url = child['data']['url']
     name = url.split('/')[-1].split('.')[0]
     try:
-        data = json.loads(urlopen(IMGUR_JSON_FORMAT.format(name)).read())
+        data = json.loads(urlopen(IMGUR_JSON_FORMAT.format(name)).read().decode("utf-8"))
     except HTTPError:
         conf.logger(WARNING,
                     "was unable to connect to the imgur api for the image at {0}, skiping".format(url))
