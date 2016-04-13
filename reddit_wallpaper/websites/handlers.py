@@ -5,16 +5,16 @@
 import re
 import json
 try:
-    from urllib2 import urlopen, HTTPError
+    from urllib2 import urlopen, HTTPError, Request
 except ImportError:
-    from urllib.request import urlopen
+    from urllib.request import urlopen, Request
     from urllib.error import HTTPError
 from .utils import check_size, get_size_directly
 from .._exceptions import Unsuitable, Unsuccessful
 from ..loggers import DEBUG, INFO, NOTICE, WARNING, ERROR, CRITICAL, ALERT, EMERGENCY
 from .decorators import *
 
-IMGUR_JSON_FORMAT = "http://api.imgur.com/2/image/{0}.json"#{0} is the imgur photo id hash
+IMGUR_JSON_FORMAT = "https://api.imgur.com/3/image/{0}"#{0} is the imgur photo id hash
 FLICKR_JSON_FORMAT = 'http://api.flickr.com/services/rest/?method=flickr.photos.getSizes&api_key=eaf4581fb8d0655b0a314d13ab54ef46&photo_id={0}&format=json&nojsoncallback=1'#{0} is the flickr photo-id number
 DEVIANT_ART_JSON_FORMAT = 'http://backend.deviantart.com/oembed?url={0}'#{0} is the url of the deviantart page
 
@@ -61,14 +61,16 @@ def i_imgur_handler(conf, child):
     url = child['data']['url'].split("?")[0]
     if conf.size_limit is not None:
         try:
-            data = json.loads(urlopen(IMGUR_JSON_FORMAT.format(url.split('/')[-1][:5])).read().decode("utf-8"))
+            data = json.loads(urlopen(
+                Request(IMGUR_JSON_FORMAT.format(url.split('/')[-1][:7]),
+                        headers={"Authorization": "Client-ID cc457e9e24ce191"})).read().decode("utf-8"))
             conf.logger(DEBUG,
                         "was able to retrieve the image metadata from imgur for image {0}".format(url))
-        except HTTPError:
-            raise Unsuitable()
+        except HTTPError as e:
+            raise Unsuitable(e)
         if not check_size(conf,
-                          (data["image"]["image"]["width"],
-                           data["image"]["image"]["height"])):
+                          (data["data"]["width"],
+                           data["data"]["height"])):
             conf.logger(DEBUG,
                         "the image at {0} was not the right size".format(url))
             raise Unsuitable()
@@ -122,8 +124,11 @@ def imgur_handler(conf, child):
     url = child['data']['url']
     name = url.split('/')[-1].split('.')[0]
     try:
-        data = json.loads(urlopen(IMGUR_JSON_FORMAT.format(name)).read().decode("utf-8"))
-    except HTTPError:
+        out = urlopen(Request(
+            IMGUR_JSON_FORMAT.format(name),
+            headers={"Authorization": "Client-ID cc457e9e24ce191"})).read().decode("utf-8")
+        data = json.loads(out)
+    except HTTPError as e:
         conf.logger(WARNING,
                     "was unable to connect to the imgur api for the image at {0}, skiping".format(url))
         raise Unsuitable()
@@ -131,11 +136,11 @@ def imgur_handler(conf, child):
         conf.logger(WARNING, "Could not deserialize JSON object, imgur might be down")
         raise Unsuitable()
     #check if the size is right
-    if not check_size(conf, (data["image"]["image"]["width"],
-                             data["image"]["image"]["height"])):
+    if not check_size(conf, (data["data"]["width"],
+                             data["data"]["height"])):
         raise Unsuitable()
 
-    link = data["image"]["links"]["original"]
+    link = data["data"]["link"]
     conf.logger(INFO, 'found {0}, link was not direct'.format(url))
     return link
 
