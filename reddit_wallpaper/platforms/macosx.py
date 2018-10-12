@@ -34,8 +34,10 @@ def _log_failed(conf):
 
 SET_AS_BACKGROUND_SCRIPT = """
 /usr/bin/osascript <<END
-tell application "Finder"
-    set desktop picture to POSIX file "{0}"
+tell application "System Events"
+    tell every desktop
+        set picture to POSIX file "{0}"
+    end tell
 end tell
 END
 """
