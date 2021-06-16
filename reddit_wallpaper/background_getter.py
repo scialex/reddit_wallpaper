@@ -35,7 +35,10 @@ import os
 try:
     from urllib2 import urlopen, HTTPError
 except ImportError:
-    from urllib.request import urlopen
+    from urllib.request import urlopen as base_urlopen
+    import ssl
+    def urlopen(*args, **kwargs):
+        return base_urlopen(*args, context=ssl._create_unverified_context(), **kwargs)
     from urllib.error import HTTPError
 from . import _exceptions
 from .loggers import DEBUG, INFO, NOTICE, WARNING, ERROR, CRITICAL, ALERT, EMERGENCY
