@@ -38,7 +38,7 @@ from .. import _exceptions
 from ..loggers import DEBUG, INFO, NOTICE, WARNING, ERROR, CRITICAL, ALERT, EMERGENCY
 
 _GCONF_KEY = '/desktop/gnome/background/picture_filename'#key to write new wallpaper to
-_GSETTINGS_SCHEMA = "org.gnome.desktop.background" #schema for gsettings
+_GSETTINGS_SCHEMA = ["org.cinnamon.desktop.background", "org.gnome.desktop.background", "org.gnome.desktop.screensaver"] #schema for gsettings
 _GSETTINGS_KEY = "picture-uri" #key for gsettings
 
 DEFAULT_SAVE_LOCATION = '~/.background_getter/@'
@@ -84,15 +84,16 @@ def _gi_gconf_set_as_background(conf, file_location):
 
 def _gsettings_set_as_background(conf, file_location):
     """Sets the background path to the given path in gsettings"""
-    gsettings = Settings.new(_GSETTINGS_SCHEMA)
-    worked = gsettings.set_string(_GSETTINGS_KEY,"file://"+file_location)
-    # I do not think i need this sync command.
-    gsettings.sync()
-    if worked:
-        _log_succsess(conf,"gsetting")
-    else:
-        _log_failed(conf,"gsettings")
-        raise _exceptions.Failed("could not set gsettings key")
+    for schema in _GSETTINGS_SCHEMA:
+        gsettings = Settings.new(schema)
+        worked = gsettings.set_string(_GSETTINGS_KEY,"file://"+file_location)
+        # I do not think i need this sync command.
+        gsettings.sync()
+        if worked:
+            _log_succsess(conf,"gsetting {}".format(schema))
+        else:
+            _log_failed(conf,"gsettings")
+            raise _exceptions.Failed("could not set gsettings key")
     return
 
 def set_as_background(conf, file_location):
